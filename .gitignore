@@ -1,0 +1,32 @@
+# Python bytecode / caches / venvs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.*
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local generation artifacts (do NOT commit test images / scratch covers)
+test_generated_image.*
+preview-output/
+output/
+*.tmp
+*.log
+
+# Note:
+# - cover.png is NOT globally ignored anymore; individual skills can choose to
+#   commit a real cover image. Skill scratch covers at the skill root were a
+#   historical mistake and have been cleaned up.
+# - config.json holds local ComfyUI paths (`comfyui_output_dir`). It IS tracked
+#   so you have a working default; override per-machine via env vars
+#   (COMFYUI_URL / COMFYUI_OUTPUT_DIR) instead of editing the file.
