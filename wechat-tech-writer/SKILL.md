@@ -194,37 +194,55 @@ python3 scripts/comfyui_gen.py \
 
 ### 步骤6：根据内容生成其他配图（按需）
 
-**⚠️ 这是可选步骤**：仅在内容确实需要时才生成额外配图（0-2张）。
+**⚠️ 这是可选步骤**：根据文章内容判断是否需要配图，按需生成，不设数量上限。但注意配图不要太密，通常每个 H2 章节最多 1 张。
+
+#### 配图体系：Type × Style
+
+内容配图采用 Type（画面构成）× Style（视觉风格）体系：
+
+- **Type** 决定「画什么」：12 种类型，见 [references/image-styles/styles.md](references/image-styles/styles.md)
+- **Style** 决定「什么风格」：9 种视觉风格，Agent 根据文章调性自动选择
+- **自动推荐**：根据文章内容信号自动匹配 Type + Style，见 [references/image-styles/auto-selection.md](references/image-styles/auto-selection.md)
+- **风格预设**：按文章类型预置组合，见 [references/image-styles/style-presets.md](references/image-styles/style-presets.md)
 
 #### 决策规则
 
 ```
 阅读文章内容
   │
-  ├─ 有明确数据对比？ → 是 → 生成性能对比图
-  │
-  ├─ 有复杂技术架构？ → 是 → 生成架构示意图
-  │
-  └─ 其他情况 → 不生成配图
+  ├─ 有明确数据对比？ → comparison（对比说明）
+  ├─ 有复杂技术架构？ → architecture（架构图）
+  ├─ 有抽象概念/原理？ → concept（概念讲解）
+  ├─ 有教程/步骤？     → process（流程步骤）
+  ├─ 有知识框架？      → mindmap（思维导图）
+  ├─ 有发展历程？      → timeline（时间线）
+  ├─ 有Tips/要点？     → checklist（清单图）
+  ├─ 有核心金句？      → quote-card（金句卡片）
+  └─ 其他情况          → 不生成配图
 ```
 
-**典型场景**：
-- 产品评测文章：封面图 + 性能对比图（共2张）
-- 技术解析文章：封面图 + 技术架构图（共2张）
-- 新闻资讯文章：仅封面图（共1张）
-- 教程指南文章：仅封面图（共1张）
+#### 配图数量
 
-#### 详细指南
+根据文章内容按需生成，不设硬性上限。原则：
 
-**完整的内容配图类型、提示词模板、生成流程**：
+- 每个 H2 章节最多配 1 张图
+- 纯文字叙述、没有可视化价值的段落不配图
+- 配图密度参考：2000 字文章通常 1-3 张，3000 字文章通常 2-4 张
+- 宁缺毋滥：不确定是否需要的，不配
 
-👉 **参见** [references/content-images-guide.md](references/content-images-guide.md)
+#### Prompt 构建
 
-包含：
-- 5种配图类型（柱状图、架构图、对比图、流程图、雷达图）
-- 每种类型的提示词模板
-- 数据提取和验证方法
-- 嵌入文章的最佳实践
+每种 Type 有专用 prompt 模板，见 [references/image-styles/prompt-construction.md](references/image-styles/prompt-construction.md)。
+
+**关键原则**：
+- 图片内文字必须为中文，prompt 中直接写出要显示的中文文案
+- 一图一个焦点，不要塞太多元素
+- 用文章中的真实数据，不要 placeholder
+- 抽象优于具象：「AI 赋能」→ 光线连接感 ✅，不要画机器人 ❌
+
+#### 生成方式
+
+生图方式不变：**首选本地 ComfyUI**（`scripts/comfyui_gen.py`），备选 `image_generate`。封面图比例 2.35:1（1024×432），内容配图比例 4:3（1024×768）。
 
 ---
 
@@ -302,6 +320,10 @@ python3 scripts/comfyui_gen.py \
 - **[writing-style.md](references/writing-style.md)** - 详细的写作风格指南和范例
 - **[cover-image-guide.md](references/cover-image-guide.md)** - 封面图生成完整指南（设计原则、提示词模板）
 - **[content-images-guide.md](references/content-images-guide.md)** - 内容配图生成指南（判断标准、图表类型）
+- **[image-styles/styles.md](references/image-styles/styles.md)** - 正文配图风格库（12 种 Type × 9 种 Style）
+- **[image-styles/style-presets.md](references/image-styles/style-presets.md)** - 按文章类型的 Type + Style 预设组合
+- **[image-styles/auto-selection.md](references/image-styles/auto-selection.md)** - 自动推荐规则
+- **[image-styles/prompt-construction.md](references/image-styles/prompt-construction.md)** - 每种 Type 的专用 prompt 模板
 - **[image-guidelines.md](references/image-guidelines.md)** - 图片选择和处理标准（真实图片提取）
 - **[ai-image-generation.md](references/ai-image-generation.md)** - AI图片生成技术细节
 - **[api-configuration.md](references/api-configuration.md)** - 生图API配置指南（Gemini/DALL-E密钥设置）

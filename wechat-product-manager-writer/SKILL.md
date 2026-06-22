@@ -426,6 +426,51 @@ python3 scripts/comfyui_gen.py \
 
 ---
 
+### 步骤 7.5：生成内容配图（按需）
+
+**⚠️ 这是可选步骤**：根据文章内容判断是否需要配图，按需生成，不设数量上限。但注意配图不要太密，通常每个 H2 章节最多 1 张。
+
+#### 配图体系：Type × Style
+
+内容配图采用 Type（画面构成）× Style（视觉风格）体系：
+
+- **Type** 决定「画什么」：12 种类型，见 [references/image-styles/styles.md](references/image-styles/styles.md)
+- **Style** 决定「什么风格」：9 种视觉风格，Agent 根据文章调性自动选择
+- **自动推荐**：根据文章内容信号自动匹配 Type + Style，见 [references/image-styles/auto-selection.md](references/image-styles/auto-selection.md)
+- **风格预设**：按产品经理五类内容方向预置组合，见 [references/image-styles/style-presets.md](references/image-styles/style-presets.md)
+
+#### 决策规则
+
+```
+阅读文章内容
+  │
+  ├─ 产品功能/架构分析？ → architecture（架构图）
+  ├─ 使用场景/体验展示？ → scene（场景还原）
+  ├─ 方案对比/优劣分析？ → comparison（对比说明）
+  ├─ 搭建步骤/操作流程？ → process（流程步骤）
+  ├─ 技巧汇总/Tips？      → checklist（清单图）
+  ├─ 方法论/知识框架？    → mindmap（思维导图）
+  ├─ 行业趋势/时间线？    → timeline（时间线）
+  ├─ 核心观点/金句？      → quote-card（金句卡片）
+  └─ 其他情况             → 不生成配图
+```
+
+#### Prompt 构建
+
+每种 Type 有专用 prompt 模板，见 [references/image-styles/prompt-construction.md](references/image-styles/prompt-construction.md)。
+
+**关键原则**：
+- 图片内文字必须为中文，prompt 中直接写出要显示的中文文案
+- 一图一个焦点，不要塞太多元素
+- 用文章中的真实数据，不要 placeholder
+- 抽象优于具象
+
+#### 生成方式
+
+生图方式不变：**首选本地 ComfyUI**（`scripts/comfyui_gen.py`），备选 `image_generate`。内容配图比例 4:3（1024×768）。
+
+---
+
 ### 步骤 8：输出文章
 
 使用 `write_file` 工具创建 Markdown 文件：
@@ -475,6 +520,20 @@ python3 scripts/comfyui_gen.py \
 - [ ] 链接使用纯文本格式
 - [ ] 字数在 1500-3000 字之间
 - [ ] 没有「参考资料」「延伸阅读」等多余章节
+
+---
+
+## 参考文档导航
+
+### 详细指南
+- **[writing-style.md](references/writing-style.md)** - 详细的写作风格指南和范例
+- **[cover-image-guide.md](references/cover-image-guide.md)** - 封面图生成完整指南
+- **[structure-image-guide.md](references/structure-image-guide.md)** - 内容结构图生成指南
+- **[image-styles/styles.md](references/image-styles/styles.md)** - 正文配图风格库（12 种 Type × 9 种 Style）
+- **[image-styles/style-presets.md](references/image-styles/style-presets.md)** - 按文章类型的 Type + Style 预设组合
+- **[image-styles/auto-selection.md](references/image-styles/auto-selection.md)** - 自动推荐规则
+- **[image-styles/prompt-construction.md](references/image-styles/prompt-construction.md)** - 每种 Type 的专用 prompt 模板
+- **[api-configuration.md](references/api-configuration.md)** - 生图API配置指南
 
 ---
 
