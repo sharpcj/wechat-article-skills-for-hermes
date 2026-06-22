@@ -30,3 +30,8 @@ output/
 # - config.json holds local ComfyUI paths (`comfyui_output_dir`). It IS tracked
 #   so you have a working default; override per-machine via env vars
 #   (COMFYUI_URL / COMFYUI_OUTPUT_DIR) instead of editing the file.
+#
+# Exception: never track a real config.json inside wechat-draft-publisher —
+# that one would contain AppID/AppSecret. The live config must live at
+# ~/.wechat-publisher/config.json; only examples/config.json.example is tracked.
+wechat-draft-publisher/config.json

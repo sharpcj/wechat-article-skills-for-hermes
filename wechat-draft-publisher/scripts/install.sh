@@ -49,7 +49,9 @@ if [ -z "$CONFIG_EXISTS" ]; then
     echo ""
 
     read -p "AppID: " APPID
-    read -p "AppSecret: " APPSECRET
+    # AppSecret 不回显，避免被旁观/录屏/终端日志捕获
+    read -srp "AppSecret: " APPSECRET
+    echo
 
     # 创建配置文件
     cat > "$CONFIG_DIR/config.json" << EOF

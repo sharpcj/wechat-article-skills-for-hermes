@@ -9,6 +9,7 @@ import os
 import sys
 import json
 import time
+import getpass
 import requests
 import argparse
 from pathlib import Path
@@ -92,7 +93,8 @@ class WeChatPublisher:
         """交互式配置向导"""
         print("\n请输入微信公众号凭证：")
         appid = input("AppID (wx开头): ").strip()
-        appsecret = input("AppSecret: ").strip()
+        # AppSecret 是密钥，用 getpass 隐藏回显，避免被旁观/录屏/终端日志捕获
+        appsecret = getpass.getpass("AppSecret (输入不回显): ").strip()
 
         # 简单验证
         if not appid.startswith('wx'):
@@ -199,6 +201,8 @@ class WeChatPublisher:
 
         with open(self.TOKEN_CACHE_FILE, 'w') as f:
             json.dump(cache_data, f, indent=2)
+        # access_token 等同于 API 凭证，缓存文件必须收紧权限（仅属主可读写）
+        os.chmod(self.TOKEN_CACHE_FILE, 0o600)
 
         print(f"✓ 获取access_token成功 (有效期: {expires_in}秒)")
         return access_token
@@ -779,6 +783,14 @@ class WeChatPublisher:
         return result
 
 
+def _redact_secret(text) -> str:
+    """脱敏：隐藏错误信息中可能携带的 access_token / secret 参数，避免泄露到终端日志"""
+    import re
+    text = re.sub(r'(access_token=)[^&\s\'"]+', r'\1***', str(text))
+    text = re.sub(r'(secret=)[^&\s\'"]+', r'\1***', text)
+    return text
+
+
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
@@ -862,7 +874,7 @@ def main():
         print("\n\n操作已取消")
         sys.exit(0)
     except Exception as e:
-        print(f"\n✗ 错误: {e}")
+        print(f"\n✗ 错误: {_redact_secret(e)}")
         sys.exit(1)
 
 
