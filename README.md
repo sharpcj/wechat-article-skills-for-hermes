@@ -14,9 +14,10 @@
 从 AI 产品经理视角撰写文章。涵盖 AI 产品拆解、场景解决方案、效率提升实战、产品方法论、行业观察。
 
 **核心特性：**
-- 🤖 产品思维驱动写作
-- 📊 强制生成内容结构图（信息图）
+- 🤖 产品思维驱动写作，第一人称、观点鲜明
+- 📊 强制生成内容结构图（Graphic Recording 风格信息图）
 - 🎨 强制生成专业文章封面
+- 🖼️ 按需生成内容配图（12 种 Type × 9 种 Style 风格体系）
 - 🎯 实战场景导向，非纯技术教程
 
 [📚 详细文档](./wechat-product-manager-writer/SKILL.md)
@@ -24,30 +25,29 @@
 ---
 
 ### 2️⃣ WeChat Tech Writer - AI 技术写作助手
-基于 AI 的智能技术文章写作工具，快速生成高质量技术内容。
+基于 AI 的智能技术文章写作工具，自动搜索、抓取、改写，快速生成高质量技术科普内容。
 
 **核心特性：**
-- 🤖 AI 辅助写作
-- 📊 技术文章优化
-- 🎯 SEO 关键词优化
-- 📱 移动端阅读优化
+- 🤖 AI 辅助搜索与写作
+- 🎨 强制生成专业文章封面
+- 🖼️ 按需生成内容配图（12 种 Type × 9 种 Style 风格体系）
+- 📱 面向公众号读者的通俗化表达
 
 [📚 详细文档](./wechat-tech-writer/SKILL.md)
 
 ---
 
 ### 3️⃣ WeChat Article Formatter - 文章格式化工具
-将 Markdown 文章转换为适合微信公众号的美化 HTML，一键生成专业排版。
+将 Markdown 文章转换为适合微信公众号的美化 HTML，所有样式 inline，可直接粘贴到微信编辑器。
 
 **核心特性：**
-- 📝 完整支持 Markdown 语法
-- 🎨 三套精美主题（科技风、简约风、商务风）
-- 💅 专业样式，完美适配微信公众号
-- 🌈 多语言代码高亮
-- ⚡ 支持批量转换
-- 👀 实时预览功能
+- 📝 纯手写 Markdown 解析器，零外部 Markdown 依赖
+- 🎨 四套 YAML 主题（经典蓝 / 优雅紫 / 暖橙 / 极简黑），支持自定义
+- 🔧 变量替换机制，一键换色、换字号
+- 📐 预格式化：中英文自动间距、引号转换、空行压缩
+- 🧩 支持表格、代码块、嵌套列表、图注等完整元素
 
-[📚 详细文档](./wechat-article-formatter/README.md)
+[📚 详细文档](./wechat-article-formatter/SKILL.md)
 
 ---
 
@@ -56,27 +56,40 @@
 
 **核心特性：**
 - ✅ 自动获取和缓存 access_token
-- ✅ 支持上传封面图片
+- ✅ 支持上传封面图片（`--cover` 参数）
+- ✅ 作者从配置文件读取，首次运行自动询问
 - ✅ 智能错误处理和重试
 - ✅ 命令行 + 交互式双模式
-- ✅ 完整的日志输出
 
-[📚 详细文档](./wechat-draft-publisher/README.md)
+[📚 详细文档](./wechat-draft-publisher/SKILL.md)
 
 ---
 
-## 🖼️ 关于生图：本地 ComfyUI
+## 🖼️ 关于配图
 
-两个写作类 skill（`wechat-tech-writer`、`wechat-product-manager-writer`）已经各自**内嵌**一份 ComfyUI 调用脚本（`scripts/comfyui_gen.py`）和 workflow 模板（`templates/image_z_image.json`）：
+### 配图体系：Type × Style
 
-- ✅ 调用本地 ComfyUI（默认 `http://localhost:6677`），用本地算力、可控、可换模型/workflow
-- ✅ 按 KSampler 的 positive/negative 引用精确注入提示词，支持负向词
-- ✅ 配置走各 skill 自己的 `config.json`（`comfyui_url` / `comfyui_output_dir`）+ 环境变量覆盖，换机器只改配置即可
-- ✅ 封面图按 2.35:1（1024×432）出图、内容插图按 4:3（1024×768）出图
+两个写作 skill 共享同一套内容配图体系：
 
-> 设计取向：**每个 skill 都可以独立安装、独立使用**，因此两边的 `comfyui_gen.py` 是**有意维护的两份副本**而不是共享脚本。修改时请记得同步两边。
+- **12 种 Type**（画面构成）：concept / process / whiteboard / data-viz / comparison / architecture / mindmap / timeline / checklist / quote-card / scene / atmosphere
+- **9 种 Style**（视觉风格）：扁平矢量 / 简约线条 / 蓝图 / 手绘 / 水彩 / 海报 / 温暖 / 极简 / 商务
+- **自动推荐**：Agent 根据文章内容信号自动匹配 Type + Style
+- **专用 Prompt 模板**：每种 Type 有独立的 prompt 构建模板
+
+详见各 skill 的 `references/image-styles/` 目录。
+
+### 生图方式：本地 ComfyUI
+
+两个写作类 skill 各自内嵌 ComfyUI 调用脚本（`scripts/comfyui_gen.py`）和 workflow 模板（`templates/image_z_image.json`）：
+
+- ✅ 调用本地 ComfyUI（默认 `http://localhost:6677`），用本地算力
+- ✅ 按 KSampler 的 positive/negative 引用精确注入提示词
+- ✅ 配置走各 skill 自己的 `config.json` + 环境变量覆盖
+- ✅ 封面图 2.35:1（1024×432）、内容配图 4:3（1024×768）
+
+> 设计取向：**每个 skill 都可以独立安装、独立使用**，因此两边的 `comfyui_gen.py` 是有意维护的两份副本。修改时请记得同步两边。
 >
-> ComfyUI 未启动时，skill 不会静默退回；它会先告诉你"本地 ComfyUI 未在线"，让你选择是手动启动 ComfyUI、还是改用 Hermes 内置的 `image_generate`（无需自备 API key）。
+> ComfyUI 未启动时，skill 不会静默退回；它会先告诉你「本地 ComfyUI 未在线」，让你选择手动启动 ComfyUI 或改用 Hermes 内置的 `image_generate`。
 
 ---
 
@@ -94,8 +107,22 @@ git clone <repository-url>
 ### 典型工作流程
 
 **全流程一句话搞定**
-```bash
+```
 帮我写一篇介绍 Claude code 的文章，并且进行格式美化，然后推送到微信公众号后台
+```
+
+**分步执行**
+```bash
+# 1. 写文章（自动生成封面图 cover.png）
+#    对 Hermes 说：「写一篇关于 XXX 的公众号文章」
+
+# 2. 格式化
+cd wechat-article-formatter
+python scripts/markdown_to_html.py --input 文章.md --theme default
+
+# 3. 发布（封面图通过 --cover 参数上传，不插入正文）
+cd ../wechat-draft-publisher
+python publisher.py --title "标题" --content ../文章.html --cover ../cover.png
 ```
 
 ---
@@ -104,42 +131,51 @@ git clone <repository-url>
 
 ```
 wechat_article_skills/
-├── wechat-tech-writer/              # AI 技术写作 skill（含内嵌 ComfyUI 生图脚本）
+├── wechat-tech-writer/              # AI 技术写作 skill
 │   ├── SKILL.md
-│   ├── EXAMPLES.md
-│   ├── config.json                  # ComfyUI 配置（URL / 输出目录）
-│   ├── scripts/
-│   │   ├── comfyui_gen.py           # 本地 ComfyUI 生图（首选）
-│   │   ├── generate_image.py        # Gemini / DALL-E 直连（备选，需密钥）
-│   │   ├── generate_cover_optimized.py
-│   │   └── generate_temp.py
-│   ├── templates/
-│   │   └── image_z_image.json       # ComfyUI workflow 模板
-│   └── references/                  # 写作风格、配图、事实核查等参考资料
-│
-├── wechat-product-manager-writer/   # AI 产品经理视角写作 skill（含内嵌 ComfyUI 生图脚本）
-│   ├── SKILL.md
-│   ├── EXAMPLES.md
 │   ├── config.json                  # ComfyUI 配置
 │   ├── scripts/
-│   │   ├── comfyui_gen.py           # 与 tech-writer 同步维护的副本
-│   │   └── generate_image.py        # 备选
+│   │   ├── comfyui_gen.py           # 本地 ComfyUI 生图（首选）
+│   │   └── generate_image.py        # Gemini / DALL-E 直连（备选）
 │   ├── templates/
-│   │   └── image_z_image.json
-│   └── references/                  # 写作风格、封面/结构图指南等
+│   │   └── image_z_image.json       # ComfyUI workflow 模板
+│   └── references/
+│       ├── image-styles/            # 配图风格库（Type × Style）
+│       │   ├── styles.md            #   12 种 Type + 9 种 Style
+│       │   ├── style-presets.md     #   按文章类型的预设组合
+│       │   ├── auto-selection.md    #   自动推荐规则
+│       │   └── prompt-construction.md # 每种 Type 的 prompt 模板
+│       ├── cover-image-guide.md     # 封面图生成指南
+│       ├── content-images-guide.md  # 内容配图指南
+│       └── writing-style.md         # 写作风格指南
 │
-├── wechat-article-formatter/        # Markdown → 公众号 HTML 排版 skill
-│   ├── SKILL.md / README.md / QUICKSTART.md / EXAMPLES.md
-│   ├── scripts/                     # markdown_to_html.py 等转换脚本
-│   ├── templates/                   # tech / minimal / business 三套主题 CSS
-│   ├── references/
-│   └── examples/                    # 多套示例 HTML
+├── wechat-product-manager-writer/   # AI 产品经理视角写作 skill
+│   ├── SKILL.md
+│   ├── config.json
+│   ├── scripts/                     # 与 tech-writer 同步维护
+│   ├── templates/
+│   └── references/
+│       ├── image-styles/            # 配图风格库（同上结构）
+│       ├── cover-image-guide.md
+│       └── structure-image-guide.md # 内容结构图指南
+│
+├── wechat-article-formatter/        # Markdown → 公众号 HTML 排版
+│   ├── SKILL.md
+│   ├── scripts/
+│   │   ├── markdown_to_html.py      # 核心转换脚本（纯手写解析器）
+│   │   └── convert-code-blocks.py   # 代码块微信兼容转换
+│   ├── themes/                      # YAML 主题文件
+│   │   ├── default.yaml             #   经典蓝
+│   │   ├── grace.yaml               #   优雅紫
+│   │   ├── modern.yaml              #   暖橙
+│   │   └── simple.yaml              #   极简黑
+│   ├── templates/                   # 旧 CSS 主题（保留兼容）
+│   └── examples/                    # HTML 示例模板
 │
 ├── wechat-draft-publisher/          # HTML → 公众号草稿箱
-│   ├── SKILL.md / README.md
+│   ├── SKILL.md
 │   ├── publisher.py                 # 核心发布脚本
-│   ├── scripts/                     # 发布流程、HTML 处理
-│   └── examples/config.json.example # appid / appsecret 模板
+│   └── scripts/                     # HTML 优化、样式修复
 │
 └── README.md                        # 本文件
 ```
@@ -150,12 +186,12 @@ wechat_article_skills/
 
 ### 技术博客作者
 - 使用 **WeChat Tech Writer** AI 辅助生成技术内容
-- 使用 **Article Formatter** 的 tech 主题美化排版
+- 使用 **Article Formatter** 的 YAML 主题美化排版
 - 使用 **Draft Publisher** 一键发布
 
-### 内容运营者
-- 使用 **Article Formatter** 批量转换历史文章
-- 使用 minimal 或 business 主题适配不同风格
+### 产品经理 / 内容运营
+- 使用 **WeChat Product Manager Writer** 从产品视角写作
+- 使用 **Article Formatter** 切换主题适配不同风格
 - 自动化发布流程，提升效率
 
 ### 自媒体创作者
@@ -167,11 +203,11 @@ wechat_article_skills/
 
 ## 📋 系统要求
 
-- **Python**: 3.6+
+- **Python**: 3.8+
+- **依赖**: PyYAML（formatter 需要）
 - **操作系统**: Windows / macOS / Linux
-- **浏览器**: Chrome / Edge（用于预览）
 - **微信公众号**: 认证的服务号或订阅号（用于 API 发布）
-- **ComfyUI（可选）**: 本地部署并启动的 ComfyUI（默认 `http://localhost:6677`），供写作 skill 内嵌的 `comfyui_gen.py` 使用；未启动时写作 skill 会先告知你，由你选择手动启动或改用 Hermes 内置 `image_generate`
+- **ComfyUI（可选）**: 本地部署并启动的 ComfyUI（默认 `http://localhost:6677`），供写作 skill 生图使用
 
 ---
 
@@ -184,18 +220,17 @@ wechat_article_skills/
 ```json
 {
   "appid": "wx1234567890abcdef",
-  "appsecret": "your_appsecret_here"
+  "appsecret": "your_appsecret_here",
+  "author": "你的作者名"
 }
 ```
 
-**获取 AppID 和 AppSecret：**
-1. 登录 [微信公众平台](https://mp.weixin.qq.com)
-2. 进入"设置与开发" → "基本配置"
-3. 查看开发者 ID 和密码
+- `appid` / `appsecret`：从微信公众平台「设置与开发 → 基本配置」获取
+- `author`：可选，首次运行未配置时会自动询问并保存
 
 ### ComfyUI 生图配置（可选）
 
-如果你想用本地 ComfyUI 生图（推荐），编辑 `wechat-tech-writer/config.json` 和 `wechat-product-manager-writer/config.json`：
+编辑 `wechat-tech-writer/config.json` 和 `wechat-product-manager-writer/config.json`：
 
 ```json
 {
@@ -204,7 +239,7 @@ wechat_article_skills/
 }
 ```
 
-也可以用环境变量临时覆盖（不改文件）：
+也可以用环境变量临时覆盖：
 
 ```bash
 export COMFYUI_URL="http://localhost:6677"
@@ -213,21 +248,21 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
 
 > ⚠️ 仓库里默认的 `comfyui_output_dir` 是作者本机路径，**克隆后请改成你自己的目录**。
 
-未启动 ComfyUI 也没关系：写作 skill 会先提示你，由你选择是手动启动 ComfyUI、还是改用 Hermes 内置的 `image_generate` 工具。
-
 ---
 
 ## 📚 文档资源
 
 ### 各工具详细文档
-- [WeChat Article Formatter 完整指南](./wechat-article-formatter/README.md)
-- [WeChat Draft Publisher 使用说明](./wechat-draft-publisher/README.md)
+- [WeChat Article Formatter 技能文档](./wechat-article-formatter/SKILL.md)
+- [WeChat Draft Publisher 技能文档](./wechat-draft-publisher/SKILL.md)
 - [WeChat Tech Writer 技能文档](./wechat-tech-writer/SKILL.md)
 - [WeChat Product Manager Writer 技能文档](./wechat-product-manager-writer/SKILL.md)
 
-### 参考资料
-- [微信公众平台帮助中心](https://kf.qq.com/product/weixinmp.html)
-- [Markdown 语法指南](https://www.markdownguide.org/)
+### 配图体系文档
+- [正文配图风格库（Type × Style）](./wechat-tech-writer/references/image-styles/styles.md)
+- [按文章类型的预设组合](./wechat-tech-writer/references/image-styles/style-presets.md)
+- [自动推荐规则](./wechat-tech-writer/references/image-styles/auto-selection.md)
+- [Prompt 构建指南](./wechat-tech-writer/references/image-styles/prompt-construction.md)
 
 ---
 
@@ -235,17 +270,15 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
 
 使用本工具集创作和发布的精选文章：
 
-### 技术文章示例
+1. **[Claude Code 零基础指南：不会写代码也能做开发？看这一篇就够了，效率翻倍！](https://mp.weixin.qq.com/s/Dx-XYcj74c2LdZOWwNS7GQ)**
 
-1. **[Claude Code 零基础指南：不会写代码也能做开发？看这一篇就够了，效率翻倍！](https://mp.weixin.qq.com/s/Dx-XYcj74c2LdZOWwNS7GQ)**  
+2. **[从70分钟到9分钟：微信公众号自动化Skills！提效狂魔！](https://mp.weixin.qq.com/s/iBKgEX_vfYNIe90qPi03Sw)**
 
-2. **[从70分钟到9分钟：微信公众号自动化Skills！提效狂魔！](https://mp.weixin.qq.com/s/iBKgEX_vfYNIe90qPi03Sw)**  
+3. **[从 Chat 到 Agent：Claude Agent SDK 才是 AI 真正的生产力开关](https://mp.weixin.qq.com/s/58nZuLJGNjm6hqfGzJg-ZA)**
 
-3. **[从 Chat 到 Agent：Claude Agent SDK 才是 AI 真正的生产力开关](https://mp.weixin.qq.com/s/58nZuLJGNjm6hqfGzJg-ZA)**  
+4. **[Claude Skill：为什么它会取代 Dify、n8n 和 Coze？](https://mp.weixin.qq.com/s/rXl4nLI6ouJMIMfvL1iSbQ)**
 
-4. **[Claude Skill：为什么它会取代 Dify、n8n 和 Coze？](https://mp.weixin.qq.com/s/rXl4nLI6ouJMIMfvL1iSbQ)**  
-
-> 💡 **提示**：以上文章均使用本项目工具完成排版和发布，欢迎参考学习！
+> 💡 以上文章均使用本项目工具完成排版和发布。
 
 ---
 
@@ -256,14 +289,14 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
    - 本工具自动缓存 token，请勿频繁重置
 
 2. **图片使用规范**
-   - 微信不支持本地图片，需重新上传
+   - 封面图通过 `--cover` 参数单独上传，不插入正文
    - 封面图片建议尺寸：900x500 像素
    - 图片大小不超过 2MB
 
 3. **样式兼容性**
-   - 微信编辑器对 CSS 支持有限
-   - 部分高级样式可能无法显示
-   - 建议使用工具提供的标准主题
+   - 微信编辑器对 CSS 支持有限（不支持伪元素、渐变、阴影等）
+   - Formatter 输出的 HTML 所有样式已 inline，可直接粘贴
+   - 代码块需运行 `convert-code-blocks.py` 转为微信兼容格式
 
 ---
 
@@ -274,11 +307,16 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
 **Q: 粘贴后样式丢失？**
 - 使用 Chrome 或 Edge 浏览器
 - 尝试全选复制而非部分复制
+- 确保使用「粘贴」而非「粘贴并匹配样式」
 
 **Q: access_token 获取失败？**
 - 检查 AppID 和 AppSecret 是否正确
 - 确认公众号已认证
 - 检查 IP 白名单配置
+
+**Q: 作者名未设置？**
+- 首次运行 publisher.py 时会自动询问并保存到 `~/.wechat-publisher/config.json`
+- 也可以手动编辑配置文件添加 `"author"` 字段
 
 更多问题请查看各工具的详细文档或提交 Issue。
 
@@ -293,82 +331,75 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
 | 维度 | 原始版本 | 当前版本 |
 |------|---------|---------|
 | 目标 Agent | Claude Code Skills | Hermes Agent Skills |
-| 安装目录 | `~/.claude/skills/` 或 `/root/.claude/skills/` | `~/.hermes/skills/` |
+| 安装目录 | `~/.claude/skills/` | `~/.hermes/skills/` |
 | Frontmatter `allowed-tools` | 用 `WebSearch, WebFetch, Read, Write, Edit, Bash` | 已移除（Hermes 不需要这个字段） |
 | 工具调用 | `WebSearch` / `WebFetch` / `Write` | `web_search` / `web_extract` / `browser_navigate` / `write_file` |
-| skill 描述 | 较简短 | 触发词扩充，覆盖更多自然语言表达，方便 Hermes 自动选 skill |
-
-所有 SKILL.md / EXAMPLES.md / 各 references 中的硬编码路径已经从 `/root/.claude/skills/...` 改为 `~/.hermes/skills/...`。
+| skill 描述 | 较简短 | 触发词扩充，覆盖更多自然语言表达 |
 
 ### 2. 默认生图后端：Gemini / DALL-E → 本地 ComfyUI
 
-这是本轮最大的改动。
+| 维度 | 原始版本 | 当前版本 |
+|------|---------|---------|
+| 首选生图方式 | `generate_image.py` 直连 Gemini / DALL-E | 本地 ComfyUI（`comfyui_gen.py` + workflow 模板） |
+| 配置方式 | 环境变量 `GEMINI_API_KEY` / `OPENAI_API_KEY` | 各 skill 自己的 `config.json`，支持环境变量覆盖 |
+| 离线兜底 | 密钥失效就生不了图 | ComfyUI 未启动时先告知用户，由用户选择手动启动或改用 `image_generate` |
+| 尺寸约定 | 各处写法不统一 | 统一：封面 2.35:1（1024×432）、内容/结构图 4:3（1024×768） |
+
+### 3. 格式化器：CSS 主题 → YAML 主题
 
 | 维度 | 原始版本 | 当前版本 |
 |------|---------|---------|
-| 首选生图方式 | `scripts/generate_image.py` 直连 Gemini Imagen / DALL-E 3 | 本地 ComfyUI（新增 `scripts/comfyui_gen.py` + `templates/image_z_image.json`） |
-| 配置方式 | 环境变量 `GEMINI_API_KEY` / `OPENAI_API_KEY` | 各 skill 自己的 `config.json`（`comfyui_url` / `comfyui_output_dir`），支持环境变量覆盖 |
-| 代理/网络要求 | 调 Gemini 时必须清空 `ALL_PROXY`，否则报 `socks5h://` 不支持 | 走本机回环，无代理问题 |
-| 离线兜底 | 没有，密钥失效 / 网络异常就生不了图 | ComfyUI 未启动时**先告知用户**，由用户选择手动启动 ComfyUI 或改用 Hermes 内置 `image_generate`（不再静默退回） |
-| 提示词注入 | 由各脚本各自处理 | `comfyui_gen.py` 通过 KSampler 的 `positive` / `negative` 引用**精确反查**到对应的 `CLIPTextEncode` 节点，模板里正负向提示词留空也能正确注入 |
-| 尺寸约定 | 各处写法不统一 | 统一：封面图 2.35:1（1024×432）、内容/结构图 4:3（1024×768） |
-| 旧脚本去向 | — | 原 `generate_image.py` 等保留为**备选方案**，文档里标注"可选/高级"，常规场景不再使用 |
+| Markdown 解析 | Python `markdown` 库 + BeautifulSoup + cssutils | 纯手写解析器，零外部 Markdown 依赖 |
+| 主题系统 | 3 套 CSS 文件 | 4 套 YAML 主题（经典蓝/优雅紫/暖橙/极简黑），支持变量替换 |
+| 依赖 | 6 个 pip 包 | 1 个（PyYAML） |
+| 预格式化 | 无 | 中英文间距、引号转换、空行压缩 |
 
-`wechat-product-manager-writer/SKILL.md` 里原本那一大段「调用 Gemini API 时必须清空 ALL_PROXY」「图片格式问题（JPEG vs PNG）」「API 密钥配置」「提示词长度限制」的注意事项，在切到 ComfyUI 之后已经整段移除。
+### 4. 配图体系：从简单决策到 Type × Style
 
-### 3. 新增「AI 产品经理视角」写作 skill
+| 维度 | 原始版本 | 当前版本 |
+|------|---------|---------|
+| 配图类型 | 5 种（柱状图/架构图/对比图/流程图/雷达图） | 12 种 Type + 9 种 Style，含专用 prompt 模板 |
+| 风格选择 | 手动指定 | Agent 根据文章内容信号自动推荐 |
+| 配图数量 | 硬上限 0-2 张 | 按需生成，每 H2 最多 1 张，宁缺毋滥 |
+| 封面图 | 插入正文 | 发布时 `--cover` 参数单独上传 |
 
-`wechat-product-manager-writer/` 是相对原版新增的写作 skill，定位差异如下：
+### 5. 发布器：作者配置优化
 
-- `wechat-tech-writer`：技术科普文章，**结构**=「是什么 / 能做什么 / 为什么选它 / 如何开始」
-- `wechat-product-manager-writer`：产品经理视角文章，**结构**=「产品拆解 / 场景解决方案 / 效率提升实战 / 产品方法论 / 行业观察」五类，强调第一人称、真实使用场景、强制生成**内容结构图（Graphic Recording 风格）**
+- 作者从 `~/.wechat-publisher/config.json` 读取 `author` 字段
+- 未配置时首次运行自动询问并保存
+- 命令行 `--author` 参数优先级最高
 
-两个 skill 一并保留，分别匹配"技术科普"和"产品向"两种写作需求。
+### 6. 新增「AI 产品经理视角」写作 skill
 
-### 4. 强化「内嵌生图脚本」的可独立安装设计
-
-- `wechat-tech-writer/scripts/comfyui_gen.py` 与 `wechat-product-manager-writer/scripts/comfyui_gen.py` 是**两份完全相同的副本**
-- 各自配套一份 `config.json` 和 `templates/image_z_image.json`
-- 这样任一 skill 单独复制进 `~/.hermes/skills/` 都能直接用，**不需要安装另一个 skill 作为依赖**
-
-### 5. 微信公众号渲染兼容性
-
-- `wechat-article-formatter` 的转换脚本、CSS 主题在公众号编辑器里的样式丢失问题做了一轮调整
-- `wechat-draft-publisher/README.md` 中相关文案从 "Claude Code Skill" 改为 "Hermes Agent 技能（Skill）"
-
-### 6. 文档与示例
-
-- 中英文 README 中所有 `/root/.claude/skills/...` 已全部替换为 `~/.hermes/skills/...`
-- 新增「ComfyUI 生图配置」一节，明确告知用户**默认配置中的 `comfyui_output_dir` 是作者本机路径，需要改成自己的**
-- 项目结构图重写，与实际目录一一对应
-
-> 如果你来自原始仓库、想沿用 Gemini / DALL-E 流程，对应脚本（`generate_image.py` 等）依然保留在两个写作 skill 的 `scripts/` 目录下，配置方式见 `references/api-configuration.md`。
+`wechat-product-manager-writer/` 是相对原版新增的写作 skill：
+- 第一人称、观点鲜明、实战导向
+- 五类内容方向：产品拆解 / 场景解决方案 / 效率提升实战 / 产品方法论 / 行业观察
+- 强制生成内容结构图（Graphic Recording 风格）
 
 ---
 
 ## 📝 更新日志
 
+### v3.2.0 (2026-06-23)
+- 🎨 Formatter 重构：用 YAML 主题系统替换 CSS + BeautifulSoup 方案，4 套精调主题
+- 🖼️ 配图体系升级：引入 12 种 Type × 9 种 Style 风格库，含专用 prompt 模板和自动推荐规则
+- 📝 封面图不再插入正文，发布时通过 `--cover` 参数单独上传
+- 👤 发布器作者改为从配置文件读取，首次运行自动询问
+- 📦 Formatter 依赖从 6 个精简为 1 个（PyYAML）
+
 ### v3.0.0 (2026-06-22) · Hermes 迁移版
-- 🔁 整体从 Claude Code Skills 迁移到 **Hermes Agent**：所有路径 `~/.claude/skills/` → `~/.hermes/skills/`，移除 `allowed-tools` frontmatter，工具调用改为 `web_search` / `web_extract` / `write_file` 等 Hermes 工具名
-- 🖼️ **默认生图后端从 Gemini/DALL-E 切换为本地 ComfyUI**，新增 `scripts/comfyui_gen.py` + `templates/image_z_image.json`，配置走 `config.json`，旧脚本保留为备选
-- 🧠 `comfyui_gen.py` 通过 KSampler 的 positive/negative 引用反查节点 ID，精确注入提示词，对"模板提示词留空"的 workflow 同样有效
-- 🛡️ ComfyUI 未启动时**不再静默退回**，先告知用户、由用户选择手动启动或改用 Hermes 内置 `image_generate`
-- 📐 统一封面图（2.35:1, 1024×432）与内容/结构图（4:3, 1024×768）的尺寸约定
-- 📦 强化"每个 skill 可独立安装"原则：两个写作 skill 各自内嵌一份完整的 ComfyUI 生图脚本和模板
-- 🧹 移除 product-manager-writer 中关于 Gemini 代理 / JPEG vs PNG / 密钥配置 / 提示词长度的大段注意事项（已不再相关）
-- 📚 详见上方「与原始版本的区别」一节
+- 🔁 整体从 Claude Code Skills 迁移到 **Hermes Agent**
+- 🖼️ 默认生图后端从 Gemini/DALL-E 切换为本地 ComfyUI
+- 🛡️ ComfyUI 未启动时不再静默退回
+- 📐 统一封面图与内容/结构图的尺寸约定
+- 📦 强化「每个 skill 可独立安装」原则
 
 ### v2.0.0 (2026-01-16)
-- 🚀 新增 `WeChat Product Manager Writer` (AI 产品经理写作助手)
+- 🚀 新增 `WeChat Product Manager Writer`
 - 🎨 支持强制生成内容结构图与专业封面
-- 📂 重构项目结构，支持四大核心功能
-- 🐛 修复了一些渲染问题
-- 🐛 修复了微信公众号兼容性问题
 
 ### v1.0.0 (2025-12-28)
 - ✅ 发布三个核心工具
-- ✅ 完善文档体系
-- ✅ 优化用户体验
 
 ---
 
@@ -381,8 +412,7 @@ MIT License - 供个人和商业使用
 ## 🙏 致谢
 
 感谢以下开源项目：
-- [Python-Markdown](https://python-markdown.github.io/)
-- [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)
+- [PyYAML](https://pyyaml.org/)
 - [Requests](https://requests.readthedocs.io/)
 
 ---

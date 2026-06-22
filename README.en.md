@@ -14,9 +14,10 @@ A Hermes Agent skill suite for WeChat Official Accounts, covering **AI Writing A
 Write from an AI Product Manager's perspective. Covers product teardowns, scenario solutions, efficiency boosts, methodology, and industry trends.
 
 **Key Features:**
-- 🤖 Product-thinking driven writing
-- 📊 Mandatory infographics/structure maps
-- 🎨 Cover image via local ComfyUI (built in; falls back to Hermes' `image_generate` when offline)
+- 🤖 Product-thinking driven writing, first-person, opinionated
+- 📊 Mandatory infographics/structure maps (Graphic Recording style)
+- 🎨 Mandatory professional cover image
+- 🖼️ On-demand content illustrations (12 Types × 9 Styles system)
 - 🎯 Scenario-oriented practical insights
 
 [📚 Documentation](./wechat-product-manager-writer/SKILL.md)
@@ -24,31 +25,29 @@ Write from an AI Product Manager's perspective. Covers product teardowns, scenar
 ---
 
 ### 2️⃣ WeChat Tech Writer - AI Writing Assistant
-AI-powered technical writing assistant for creating high-quality tech content.
+AI-powered technical writing assistant. Auto-searches, scrapes, and rewrites to produce high-quality tech content for general audiences.
 
 **Key Features:**
-- 🤖 AI-assisted writing
-- 🖼️ Cover image via local ComfyUI (built in; falls back to Hermes' `image_generate` when offline)
-- 📊 Technical content optimization
-- 🎯 SEO keyword optimization
-- 📱 Mobile reading optimization
+- 🤖 AI-assisted search and writing
+- 🎨 Mandatory professional cover image
+- 🖼️ On-demand content illustrations (12 Types × 9 Styles system)
+- 📱 Reader-friendly, plain-language tech writing
 
 [📚 Documentation](./wechat-tech-writer/SKILL.md)
 
 ---
 
 ### 3️⃣ WeChat Article Formatter
-Convert Markdown articles to beautifully formatted HTML optimized for WeChat Official Accounts.
+Convert Markdown articles to beautifully formatted HTML optimized for WeChat Official Accounts. All styles inline — paste directly into the WeChat editor.
 
 **Key Features:**
-- 📝 Full Markdown syntax support
-- 🎨 Three premium themes (Tech, Minimal, Business)
-- 💅 Professional styling for WeChat
-- 🌈 Multi-language syntax highlighting
-- ⚡ Batch conversion support
-- 👀 Real-time preview
+- 📝 Hand-written Markdown parser, zero external Markdown dependencies
+- 🎨 Four YAML themes (Classic Blue / Elegant Purple / Warm Orange / Minimal Black), customizable
+- 🔧 Variable substitution — one-click color/size changes
+- 📐 Pre-formatting: CJK spacing, quote conversion, blank line compression
+- 🧩 Full support for tables, code blocks, nested lists, captions, and more
 
-[📚 Documentation](./wechat-article-formatter/README.md)
+[📚 Documentation](./wechat-article-formatter/SKILL.md)
 
 ---
 
@@ -56,13 +55,41 @@ Convert Markdown articles to beautifully formatted HTML optimized for WeChat Off
 Automatically publish HTML articles to your WeChat Official Account draft box.
 
 **Key Features:**
-- ✅ Auto access_token management
-- ✅ Cover image upload support
+- ✅ Auto access_token caching and management
+- ✅ Cover image upload via `--cover` parameter
+- ✅ Author read from config file, auto-prompt on first run
 - ✅ Smart error handling & retry
 - ✅ CLI + Interactive modes
-- ✅ Complete logging
 
-[📚 Documentation](./wechat-draft-publisher/README.md)
+[📚 Documentation](./wechat-draft-publisher/SKILL.md)
+
+---
+
+## 🖼️ About Illustrations
+
+### Type × Style System
+
+Both writing skills share the same content illustration framework:
+
+- **12 Types** (what to draw): concept / process / whiteboard / data-viz / comparison / architecture / mindmap / timeline / checklist / quote-card / scene / atmosphere
+- **9 Styles** (visual style): flat vector / minimal line / blueprint / hand-drawn / watercolor / poster / warm / minimalist / business
+- **Auto-selection**: Agent matches Type + Style based on article content signals
+- **Dedicated prompt templates**: Each Type has its own prompt construction template
+
+See `references/image-styles/` in each writing skill for details.
+
+### Image Generation: Local ComfyUI
+
+Both writing skills ship with an embedded ComfyUI client (`scripts/comfyui_gen.py`) and workflow template (`templates/image_z_image.json`):
+
+- ✅ Talks to a local ComfyUI instance (default `http://localhost:6677`)
+- ✅ Injects positive/negative prompts via KSampler node references
+- ✅ Configured per skill via `config.json`, overridable by environment variables
+- ✅ Covers at 2.35:1 (1024×432), content illustrations at 4:3 (1024×768)
+
+> Design intent: **each skill is independently installable**, so the two `comfyui_gen.py` files are intentionally maintained as identical copies. Keep them in sync when you change one.
+>
+> When ComfyUI is not running, the skills will **not silently fall back**. They first tell you the service is offline and let you choose between starting ComfyUI manually or switching to Hermes' built-in `image_generate` tool.
 
 ---
 
@@ -73,34 +100,30 @@ Automatically publish HTML articles to your WeChat Official Account draft box.
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd wechat_article_skills
-
 # Copy each skill folder into your ~/.hermes/skills directory
-# Install Python dependencies
-pip install -r requirements.txt  # if needed
+# Then use skills_list / skill_view in Hermes to load them
 ```
 
 ### Typical Workflow
 
 **One-sentence workflow**
-```bash
+```
 Help me write an article about Claude Code, format it beautifully, and publish it to my WeChat Official Account backend
 ```
 
----
+**Step-by-step**
+```bash
+# 1. Write article (auto-generates cover.png)
+#    Tell Hermes: "Write an article about XXX for WeChat"
 
-## 🖼️ Image Generation: Local ComfyUI
+# 2. Format
+cd wechat-article-formatter
+python scripts/markdown_to_html.py --input article.md --theme default
 
-Both writing skills (`wechat-tech-writer`, `wechat-product-manager-writer`) ship with an **embedded** ComfyUI client (`scripts/comfyui_gen.py`) and workflow template (`templates/image_z_image.json`):
-
-- ✅ Talks to a local ComfyUI instance (default `http://localhost:6677`)
-- ✅ Injects positive/negative prompts by following KSampler node references — works even when the workflow template leaves prompts empty
-- ✅ Configured per skill via `config.json` (`comfyui_url` / `comfyui_output_dir`), overridable by environment variables
-- ✅ Covers at 2.35:1 (1024×432), content/structure images at 4:3 (1024×768)
-
-> Design intent: **each skill is independently installable**, so the two `comfyui_gen.py` files are intentionally maintained as identical copies rather than a shared script. Keep them in sync when you change one.
->
-> When ComfyUI is not running, the skills will **not silently fall back**. They first tell you the service is offline and let you choose between starting ComfyUI manually or switching to Hermes' built-in `image_generate` tool (no API key needed).
+# 3. Publish (cover uploaded via --cover, not embedded in body)
+cd ../wechat-draft-publisher
+python publisher.py --title "Title" --content ../article.html --cover ../cover.png
+```
 
 ---
 
@@ -108,42 +131,51 @@ Both writing skills (`wechat-tech-writer`, `wechat-product-manager-writer`) ship
 
 ```
 wechat_article_skills/
-├── wechat-tech-writer/              # AI tech-writing skill (embeds ComfyUI client)
+├── wechat-tech-writer/              # AI tech-writing skill
 │   ├── SKILL.md
-│   ├── EXAMPLES.md
-│   ├── config.json                  # ComfyUI URL / output dir
+│   ├── config.json                  # ComfyUI config
 │   ├── scripts/
 │   │   ├── comfyui_gen.py           # Local ComfyUI (preferred)
-│   │   ├── generate_image.py        # Gemini / DALL-E (fallback, needs key)
-│   │   ├── generate_cover_optimized.py
-│   │   └── generate_temp.py
+│   │   └── generate_image.py        # Gemini / DALL-E (fallback)
 │   ├── templates/
 │   │   └── image_z_image.json       # ComfyUI workflow template
-│   └── references/                  # Style / image / fact-checking guides
+│   └── references/
+│       ├── image-styles/            # Illustration style library
+│       │   ├── styles.md            #   12 Types + 9 Styles
+│       │   ├── style-presets.md     #   Preset combos by article type
+│       │   ├── auto-selection.md    #   Auto-recommendation rules
+│       │   └── prompt-construction.md # Prompt templates per Type
+│       ├── cover-image-guide.md     # Cover image guide
+│       ├── content-images-guide.md  # Content illustration guide
+│       └── writing-style.md         # Writing style guide
 │
-├── wechat-product-manager-writer/   # AI PM-perspective writing skill (embeds ComfyUI client)
+├── wechat-product-manager-writer/   # AI PM-perspective writing skill
 │   ├── SKILL.md
-│   ├── EXAMPLES.md
 │   ├── config.json
-│   ├── scripts/
-│   │   ├── comfyui_gen.py           # Synced copy of the script in tech-writer
-│   │   └── generate_image.py        # Fallback
+│   ├── scripts/                     # Synced copy of tech-writer scripts
 │   ├── templates/
-│   │   └── image_z_image.json
-│   └── references/                  # Style, cover & structure-image guides
+│   └── references/
+│       ├── image-styles/            # Same structure as tech-writer
+│       ├── cover-image-guide.md
+│       └── structure-image-guide.md # Structure image guide
 │
-├── wechat-article-formatter/        # Markdown → WeChat HTML formatter
-│   ├── SKILL.md / README.md / QUICKSTART.md / EXAMPLES.md
-│   ├── scripts/                     # markdown_to_html.py and friends
-│   ├── templates/                   # tech / minimal / business CSS themes
-│   ├── references/
-│   └── examples/                    # Rendered HTML samples
+├── wechat-article-formatter/        # Markdown → WeChat HTML
+│   ├── SKILL.md
+│   ├── scripts/
+│   │   ├── markdown_to_html.py      # Core converter (hand-written parser)
+│   │   └── convert-code-blocks.py   # WeChat-compatible code blocks
+│   ├── themes/                      # YAML theme files
+│   │   ├── default.yaml             #   Classic Blue
+│   │   ├── grace.yaml               #   Elegant Purple
+│   │   ├── modern.yaml              #   Warm Orange
+│   │   └── simple.yaml              #   Minimal Black
+│   ├── templates/                   # Legacy CSS themes (kept for compat)
+│   └── examples/                    # HTML example templates
 │
-├── wechat-draft-publisher/          # HTML → Official Account draft box
-│   ├── SKILL.md / README.md
+├── wechat-draft-publisher/          # HTML → WeChat draft box
+│   ├── SKILL.md
 │   ├── publisher.py                 # Core publishing script
-│   ├── scripts/                     # Publish workflow, HTML tweaks
-│   └── examples/config.json.example # appid / appsecret template
+│   └── scripts/                     # HTML optimization, style fixes
 │
 └── README.md                        # This file
 ```
@@ -154,12 +186,12 @@ wechat_article_skills/
 
 ### Tech Bloggers
 - Use **WeChat Tech Writer** for AI-assisted content creation
-- Use **Article Formatter** with tech theme for professional styling
+- Use **Article Formatter** with YAML themes for professional styling
 - Use **Draft Publisher** for one-click publishing
 
-### Content Operators
-- Use **Article Formatter** for batch converting articles
-- Choose themes based on content style
+### Product Managers / Content Operators
+- Use **WeChat Product Manager Writer** for PM-perspective writing
+- Use **Article Formatter** to switch themes for different styles
 - Automate publishing workflow
 
 ### Media Creators
@@ -171,11 +203,11 @@ wechat_article_skills/
 
 ## 📋 System Requirements
 
-- **Python**: 3.6+
+- **Python**: 3.8+
+- **Dependencies**: PyYAML (formatter only)
 - **OS**: Windows / macOS / Linux
-- **Browser**: Chrome / Edge (for preview)
 - **WeChat Account**: Verified Service or Subscription Account (for API publishing)
-- **ComfyUI (optional)**: A local ComfyUI instance (default `http://localhost:6677`), used by the embedded image scripts in the writing skills. When unavailable, the skills fall back to Hermes' built-in `image_generate` after asking you.
+- **ComfyUI (optional)**: A local ComfyUI instance (default `http://localhost:6677`), used by the embedded image scripts in the writing skills
 
 ---
 
@@ -188,18 +220,17 @@ Create config file at `~/.wechat-publisher/config.json`:
 ```json
 {
   "appid": "wx1234567890abcdef",
-  "appsecret": "your_appsecret_here"
+  "appsecret": "your_appsecret_here",
+  "author": "Your Author Name"
 }
 ```
 
-**Get AppID and AppSecret:**
-1. Login to [WeChat Official Accounts Platform](https://mp.weixin.qq.com)
-2. Go to "Settings & Development" → "Basic Configuration"
-3. Find Developer ID and Secret
+- `appid` / `appsecret`: Get from WeChat Official Accounts Platform → Settings & Development → Basic Configuration
+- `author`: Optional. If not set, the tool will prompt on first run and save automatically
 
 ### ComfyUI Setup (Optional)
 
-To use local ComfyUI for image generation (recommended), edit `wechat-tech-writer/config.json` and `wechat-product-manager-writer/config.json`:
+Edit `wechat-tech-writer/config.json` and `wechat-product-manager-writer/config.json`:
 
 ```json
 {
@@ -208,7 +239,7 @@ To use local ComfyUI for image generation (recommended), edit `wechat-tech-write
 }
 ```
 
-Or override with environment variables (no file edits needed):
+Or override with environment variables:
 
 ```bash
 export COMFYUI_URL="http://localhost:6677"
@@ -217,21 +248,21 @@ export COMFYUI_OUTPUT_DIR="$HOME/comfyui_output"
 
 > ⚠️ The default `comfyui_output_dir` in the repo points to the author's local path. **Change it to your own directory after cloning.**
 
-If ComfyUI is not running, the writing skills will prompt you to either start it manually or switch to Hermes' built-in `image_generate` tool.
-
 ---
 
 ## 📚 Documentation
 
 ### Tool-Specific Guides
-- [WeChat Article Formatter Complete Guide](./wechat-article-formatter/README.md)
-- [WeChat Draft Publisher User Guide](./wechat-draft-publisher/README.md)
+- [WeChat Article Formatter Skill Documentation](./wechat-article-formatter/SKILL.md)
+- [WeChat Draft Publisher Skill Documentation](./wechat-draft-publisher/SKILL.md)
 - [WeChat Tech Writer Skill Documentation](./wechat-tech-writer/SKILL.md)
 - [WeChat Product Manager Writer Skill Documentation](./wechat-product-manager-writer/SKILL.md)
 
-### External Resources
-- [WeChat Official Accounts Help Center](https://kf.qq.com/product/weixinmp.html)
-- [Markdown Guide](https://www.markdownguide.org/)
+### Illustration System Docs
+- [Content Illustration Style Library (Type × Style)](./wechat-tech-writer/references/image-styles/styles.md)
+- [Preset Combos by Article Type](./wechat-tech-writer/references/image-styles/style-presets.md)
+- [Auto-Recommendation Rules](./wechat-tech-writer/references/image-styles/auto-selection.md)
+- [Prompt Construction Guide](./wechat-tech-writer/references/image-styles/prompt-construction.md)
 
 ---
 
@@ -239,17 +270,15 @@ If ComfyUI is not running, the writing skills will prompt you to either start it
 
 Featured articles created and published using this toolkit:
 
-### Technical Article Examples
+1. **[Claude Code Beginner's Guide: Can You Develop Without Coding? This Guide Has You Covered, Double Your Efficiency!](https://mp.weixin.qq.com/s/Dx-XYcj74c2LdZOWwNS7GQ)**
 
-1. **[Claude Code Beginner's Guide: Can You Develop Without Coding? This Guide Has You Covered, Double Your Efficiency!](https://mp.weixin.qq.com/s/Dx-XYcj74c2LdZOWwNS7GQ)**  
+2. **[From 70 Minutes to 9 Minutes: WeChat Official Account Automation Skills! Efficiency Booster!](https://mp.weixin.qq.com/s/iBKgEX_vfYNIe90qPi03Sw)**
 
-2. **[From 70 Minutes to 9 Minutes: WeChat Official Account Automation Skills! Efficiency Booster!](https://mp.weixin.qq.com/s/iBKgEX_vfYNIe90qPi03Sw)**  
-
-3. **[From Chat to Agent: Why Claude Agent SDK is the Real Productivity Switch for AI](https://mp.weixin.qq.com/s/58nZuLJGNjm6hqfGzJg-ZA)**  
+3. **[From Chat to Agent: Why Claude Agent SDK is the Real Productivity Switch for AI](https://mp.weixin.qq.com/s/58nZuLJGNjm6hqfGzJg-ZA)**
 
 4. **[Claude Skill: Why Will It Replace Dify, n8n, and Coze?](https://mp.weixin.qq.com/s/rXl4nLI6ouJMIMfvL1iSbQ)**
 
-> 💡 **Tip**: All articles above were formatted and published using this toolkit. Feel free to reference them!
+> 💡 All articles above were formatted and published using this toolkit.
 
 ---
 
@@ -260,14 +289,14 @@ Featured articles created and published using this toolkit:
    - This tool auto-caches tokens to minimize requests
 
 2. **Image Guidelines**
-   - WeChat doesn't support local images
+   - Cover image uploaded via `--cover` parameter, not embedded in body
    - Recommended cover size: 900x500 pixels
    - Image size limit: 2MB
 
 3. **Style Compatibility**
-   - WeChat editor has limited CSS support
-   - Some advanced styles may not render
-   - Use provided themes for best results
+   - WeChat editor has limited CSS support (no pseudo-elements, gradients, shadows)
+   - Formatter output has all styles inline, ready to paste
+   - Code blocks need `convert-code-blocks.py` for WeChat compatibility
 
 ---
 
@@ -278,11 +307,16 @@ Featured articles created and published using this toolkit:
 **Q: Styles lost after pasting?**
 - Use Chrome or Edge browser
 - Try selecting and copying all content
+- Make sure to use "Paste" not "Paste and Match Style"
 
 **Q: access_token fetch failed?**
 - Verify AppID and AppSecret
 - Ensure account is verified
 - Check IP whitelist settings
+
+**Q: Author name not set?**
+- First run of publisher.py will prompt and save to `~/.wechat-publisher/config.json`
+- Or manually add `"author"` field to the config file
 
 For more issues, check tool-specific documentation or submit an Issue.
 
@@ -290,89 +324,81 @@ For more issues, check tool-specific documentation or submit an Issue.
 
 ## 🔀 Differences from the Original Version
 
-This repository was forked from a Claude Code Skills project, ported wholesale to **Hermes Agent**, and reworked across the default image backend, runtime, and writing perspectives. Highlights:
+This repository was forked from a Claude Code Skills project, ported wholesale to **Hermes Agent**, and reworked across the default image backend, runtime, and writing perspectives.
 
 ### 1. Runtime: Claude Code → Hermes Agent
 
 | Aspect | Original | Current |
 |--------|----------|---------|
 | Target agent | Claude Code Skills | Hermes Agent Skills |
-| Install path | `~/.claude/skills/` or `/root/.claude/skills/` | `~/.hermes/skills/` |
+| Install path | `~/.claude/skills/` | `~/.hermes/skills/` |
 | Frontmatter `allowed-tools` | `WebSearch, WebFetch, Read, Write, Edit, Bash` | Removed (Hermes doesn't need it) |
 | Tool calls | `WebSearch` / `WebFetch` / `Write` | `web_search` / `web_extract` / `browser_navigate` / `write_file` |
-| Skill descriptions | Short triggers | Expanded triggers covering more natural-language phrasings, so Hermes picks the right skill automatically |
-
-All hardcoded paths inside SKILL.md / EXAMPLES.md / references were rewritten from `/root/.claude/skills/...` to `~/.hermes/skills/...`.
 
 ### 2. Default Image Backend: Gemini / DALL-E → Local ComfyUI
 
-This is the biggest change of this round.
+| Aspect | Original | Current |
+|--------|----------|---------|
+| Preferred image flow | `generate_image.py` calling Gemini / DALL-E | Local ComfyUI (`comfyui_gen.py` + workflow template) |
+| Config | `GEMINI_API_KEY` / `OPENAI_API_KEY` env vars | Per-skill `config.json`, env vars override |
+| Offline fallback | Key/network failure meant no image | Skill asks user before falling back to `image_generate` |
+| Size conventions | Inconsistent | Unified: covers 2.35:1 (1024×432), content/structure 4:3 (1024×768) |
+
+### 3. Formatter: CSS Themes → YAML Themes
 
 | Aspect | Original | Current |
 |--------|----------|---------|
-| Preferred image flow | `scripts/generate_image.py` calling Gemini Imagen / DALL-E 3 | Local ComfyUI (new `scripts/comfyui_gen.py` + `templates/image_z_image.json`) |
-| Config | `GEMINI_API_KEY` / `OPENAI_API_KEY` env vars | Per-skill `config.json` (`comfyui_url` / `comfyui_output_dir`), env vars override |
-| Proxy / network | Had to clear `ALL_PROXY` when calling Gemini, otherwise it failed with `socks5h://` not supported | Loopback only, no proxy hassle |
-| Offline fallback | None — key/network failure meant no image | When ComfyUI is offline, **the skill tells the user and asks** before falling back to Hermes' `image_generate` |
-| Prompt injection | Each script handled it independently | `comfyui_gen.py` walks the KSampler `positive` / `negative` references to find the actual `CLIPTextEncode` nodes — works even when the template's prompts are left empty |
-| Size conventions | Inconsistent across files | Unified: covers 2.35:1 (1024×432), content/structure images 4:3 (1024×768) |
-| Where the old scripts went | — | `generate_image.py` and friends are kept as **optional fallbacks**, marked "advanced" in the docs and not used by default |
+| Markdown parsing | Python `markdown` lib + BeautifulSoup + cssutils | Hand-written parser, zero external Markdown deps |
+| Theme system | 3 CSS files | 4 YAML themes (Classic Blue / Elegant Purple / Warm Orange / Minimal Black) with variable substitution |
+| Dependencies | 6 pip packages | 1 (PyYAML) |
+| Pre-formatting | None | CJK spacing, quote conversion, blank line compression |
 
-The long block in `wechat-product-manager-writer/SKILL.md` warning about Gemini proxy issues, JPEG-vs-PNG, API-key configuration, and prompt length limits was removed entirely once we moved to ComfyUI.
+### 4. Illustration System: Simple → Type × Style
 
-### 3. New "AI PM Perspective" Writing Skill
+| Aspect | Original | Current |
+|--------|----------|---------|
+| Illustration types | 5 (bar chart, architecture, comparison, flowchart, radar) | 12 Types + 9 Styles with dedicated prompt templates |
+| Style selection | Manual | Agent auto-recommends based on article content signals |
+| Illustration count | Hard cap 0-2 | On-demand, max 1 per H2 section, quality over quantity |
+| Cover image | Embedded in body | Uploaded via `--cover` parameter, not in body |
 
-`wechat-product-manager-writer/` was added on top of the original suite:
+### 5. Publisher: Author Config
 
-- `wechat-tech-writer`: technical popular-science articles — structure = "What it is / What it does / Why pick it / How to start"
-- `wechat-product-manager-writer`: PM-perspective articles — structure spans "product teardowns / scenario solutions / efficiency wins / methodology / industry watch", written in first person with real usage scenarios, and **mandates a Graphic Recording–style content structure image** for every article
+- Author read from `~/.wechat-publisher/config.json` `author` field
+- Auto-prompt and save on first run if not configured
+- CLI `--author` flag takes highest priority
 
-Both skills coexist and cover "tech popular-science" vs "product-flavored" writing needs respectively.
+### 6. New "AI PM Perspective" Writing Skill
 
-### 4. "Each Skill Is Independently Installable"
-
-- `wechat-tech-writer/scripts/comfyui_gen.py` and `wechat-product-manager-writer/scripts/comfyui_gen.py` are **two identical copies kept in sync on purpose**
-- Each ships its own `config.json` and `templates/image_z_image.json`
-- Either skill can be copied into `~/.hermes/skills/` on its own and just work — **no need to install the other as a dependency**
-
-### 5. WeChat Renderer Compatibility
-
-- `wechat-article-formatter`'s converter and CSS themes were nudged to reduce style-loss inside the WeChat editor
-- Copy in `wechat-draft-publisher/README.md` was changed from "Claude Code Skill" to "Hermes Agent Skill"
-
-### 6. Docs & Examples
-
-- All `/root/.claude/skills/...` paths in both Chinese and English READMEs were replaced with `~/.hermes/skills/...`
-- A new "ComfyUI Setup" section makes it explicit that **the default `comfyui_output_dir` in the repo is the author's local path and you must change it**
-- The project-structure tree was rewritten to match the actual on-disk layout
-
-> If you came from the original repo and want to keep using Gemini / DALL-E, the matching scripts (`generate_image.py`, etc.) still live in each writing skill's `scripts/` directory. See `references/api-configuration.md` for setup.
+`wechat-product-manager-writer/` added on top of the original suite:
+- First-person, opinionated, scenario-driven
+- Five content categories: product teardowns / scenario solutions / efficiency wins / methodology / industry watch
+- Mandatory Graphic Recording–style content structure image per article
 
 ---
 
 ## 📝 Changelog
 
+### v3.2.0 (2026-06-23)
+- 🎨 Formatter refactored: YAML theme system replaces CSS + BeautifulSoup, 4 finely-tuned themes
+- 🖼️ Illustration system upgraded: 12 Types × 9 Styles with dedicated prompt templates and auto-recommendation
+- 📝 Cover image no longer embedded in body; uploaded via `--cover` parameter
+- 👤 Publisher author now read from config file, auto-prompt on first run
+- 📦 Formatter dependencies reduced from 6 to 1 (PyYAML)
+
 ### v3.0.0 (2026-06-22) · Hermes Migration
-- 🔁 Full migration from Claude Code Skills to **Hermes Agent**: paths `~/.claude/skills/` → `~/.hermes/skills/`, `allowed-tools` frontmatter removed, tool calls rewritten to `web_search` / `web_extract` / `write_file` etc.
-- 🖼️ **Default image backend switched from Gemini/DALL-E to local ComfyUI**, with a new `scripts/comfyui_gen.py` + `templates/image_z_image.json`. Config moved to `config.json`. Legacy scripts kept as optional fallbacks.
-- 🧠 `comfyui_gen.py` resolves KSampler positive/negative references to find the actual prompt nodes — works even when the workflow template leaves prompts empty.
-- 🛡️ When ComfyUI is offline, the skill **no longer falls back silently**: it asks whether to start ComfyUI or use Hermes' built-in `image_generate`.
-- 📐 Unified image sizes: covers 2.35:1 (1024×432), content/structure images 4:3 (1024×768).
-- 📦 Reinforced the "each skill is independently installable" principle: both writing skills carry their own embedded copy of the ComfyUI client and workflow template.
-- 🧹 Removed the large Gemini-specific notes (proxy, JPEG vs PNG, API key, prompt length) from product-manager-writer — no longer relevant.
-- 📚 See the **Differences from the Original Version** section above for the full diff.
+- 🔁 Full migration from Claude Code Skills to **Hermes Agent**
+- 🖼️ Default image backend switched from Gemini/DALL-E to local ComfyUI
+- 🛡️ ComfyUI offline: no more silent fallback
+- 📐 Unified image size conventions
+- 📦 Reinforced "each skill independently installable" principle
 
 ### v2.0.0 (2026-01-16)
-- 🚀 Added `WeChat Product Manager Writer` (AI PM perspective)
+- 🚀 Added `WeChat Product Manager Writer`
 - 🎨 Mandatory infographic and professional cover generation
-- 📂 Refactored structure to support four core tools
-- 🐛 Fixed rendering issues
-- 🐛 Fixed WeChat Official Account compatibility bugs
 
 ### v1.0.0 (2025-12-28)
 - ✅ Released three core tools
-- ✅ Complete documentation
-- ✅ Optimized user experience
 
 ---
 
@@ -385,8 +411,7 @@ MIT License - Free for personal and commercial use
 ## 🙏 Acknowledgments
 
 Thanks to these open-source projects:
-- [Python-Markdown](https://python-markdown.github.io/)
-- [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)
+- [PyYAML](https://pyyaml.org/)
 - [Requests](https://requests.readthedocs.io/)
 
 ---
@@ -394,5 +419,3 @@ Thanks to these open-source projects:
 **Happy Writing!** 🎉
 
 Feel free to file a GitHub Issue for questions or suggestions!
-
-
