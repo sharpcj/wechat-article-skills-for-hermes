@@ -25,7 +25,7 @@ python publisher.py \
 ```
 
 **默认值：**
-- 作者：`YanG`
+- 作者：从 `~/.wechat-publisher/config.json` 读取 `author` 字段；未配置时首次运行会询问并自动保存
 - 封面图：`cover.png`
 
 ## 📋 执行步骤
@@ -84,7 +84,8 @@ python publisher.py \
 ```json
 {
   "appid": "wx1234567890abcdef",
-  "appsecret": "your_secret_here"
+  "appsecret": "your_secret_here",
+  "author": "你的作者名"
 }
 ```
 

@@ -44,6 +44,7 @@ class WeChatPublisher:
         self.appid = None
         self.appsecret = None
         self.access_token = None
+        self.author = None
         self.load_config()
 
     def load_config(self):
@@ -77,6 +78,7 @@ class WeChatPublisher:
         # 验证必需字段
         self.appid = config.get('appid', '').strip()
         self.appsecret = config.get('appsecret', '').strip()
+        self.author = config.get('author', '').strip()
 
         if not self.appid or self.appid in ['your_appid_here', 'your_appid']:
             raise ValueError(f"请在配置文件中填写有效的appid\n配置文件: {self.CONFIG_FILE}")
@@ -791,6 +793,20 @@ def _redact_secret(text) -> str:
     return text
 
 
+def _save_author_to_config(author: str):
+    """将作者名回写到配置文件"""
+    config_file = os.path.expanduser("~/.wechat-publisher/config.json")
+    config = {}
+    if os.path.exists(config_file):
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    config['author'] = author
+    with open(config_file, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+    os.chmod(config_file, 0o600)
+    print(f"✓ 作者已保存到配置文件")
+
+
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
@@ -806,7 +822,7 @@ def main():
 
     parser.add_argument('-t', '--title', help='文章标题')
     parser.add_argument('-c', '--content', help='文章内容文件路径（HTML格式）')
-    parser.add_argument('-a', '--author', default='YanG', help='作者（默认: YanG）')
+    parser.add_argument('-a', '--author', default=None, help='作者（默认: 从配置文件读取，无则询问）')
     parser.add_argument('--cover', default='cover.png', help='封面图片路径（默认: cover.png）')
     parser.add_argument('-d', '--digest', help='文章摘要')
     parser.add_argument('--interactive', action='store_true', help='交互式模式')
@@ -835,6 +851,19 @@ def main():
             author = args.author
             cover = args.cover
             digest = args.digest
+
+        # 作者解析：命令行 > 配置文件 > 询问用户
+        if not author:
+            author = publisher.author
+        if not author:
+            author = input("请输入作者名: ").strip()
+            if not author:
+                print("错误: 作者名不能为空")
+                sys.exit(1)
+            # 回写到配置文件
+            save_author = input(f"是否将作者 '{author}' 保存到配置文件？(Y/n): ").strip().lower()
+            if save_author in ['', 'y', 'yes']:
+                _save_author_to_config(author)
 
         # 读取内容文件
         if not os.path.exists(content_file):

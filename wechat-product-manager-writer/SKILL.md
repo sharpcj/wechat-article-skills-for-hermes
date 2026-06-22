@@ -433,8 +433,6 @@ python3 scripts/comfyui_gen.py \
 ```markdown
 # 文章标题
 
-![封面图](cover.png)
-
 ![内容结构图](structure.png)
 
 正文内容...
