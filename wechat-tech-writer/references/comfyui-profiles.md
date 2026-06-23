@@ -4,7 +4,7 @@
 
 ## 一、机制概览
 
-`scripts/comfyui_gen.py` 不再硬编码 workflow，改用 **profile（模型档案）** 选 workflow，并支持 **`auto` 档**根据 prompt 自动挑模型。
+`scripts/comfyui_gen.py` 用 **profile（模型档案）** 选 workflow，并支持 **`auto` 档**做启发式兜底。
 
 `config.json` 结构：
 
@@ -14,40 +14,71 @@
   "comfyui_output_dir": "~/comfyui_output",
   "default_profile": "auto",
   "auto_rules": {
-    "contains_cjk": "z-image",
+    "render_cjk_text": "z-image",
     "fallback": "flux2"
   },
   "profiles": {
     "z-image": {
       "workflow": "templates/image_z_image.json",
-      "description": "Z-Image (Qwen3-4B CLIP + AuraFlow), 中文文字渲染更稳"
+      "description": "Z-Image, 图里需要渲染中文字符时用"
     },
     "flux2": {
       "workflow": "templates/image_flux2_text_to_image_9b.json",
-      "description": "FLUX.2 9B (SamplerCustomAdvanced + Flux2 latent), 非中文场景画质更好"
+      "description": "FLUX.2 9B, 图里不需要渲染中文字符时用，画质更好"
     }
   }
 }
 ```
 
-### auto 档（默认）
+### 核心判断标准
 
-`default_profile: "auto"` 表示让脚本根据 prompt 自动选 profile。规则在 `auto_rules`：
+**选哪个 profile，看"最终图里是否需要渲染汉字"，跟 prompt 本身用什么语言写没关系。**
 
-- prompt **含中文**（CJK 字符）→ `z-image`（中文文字渲染稳）
-- prompt **不含中文**（纯英文）→ `flux2`（画质更好）
+举例：
 
-每次 auto 选择都会在 stderr 打印一行 `[INFO] auto 选择 profile: z-image（prompt 含中文）`，方便确认。
+| Prompt | 图里要画中文吗 | 选哪个 |
+|--------|--------------|--------|
+| `A photo of a billboard with Chinese text "世界杯足球"` | 要（广告牌上有中文） | z-image |
+| `一张猫在桌子上的照片，工作室光线` | 不要（虽然 prompt 是中文，但图里没字） | flux2 |
+| `Cover with title "探索 AI 编程" in Chinese` | 要 | z-image |
+| `A cute cat on the desk, studio lighting` | 不要 | flux2 |
+| `一张广告牌，上面有英文 World Cup 字样` | 不要（中文 prompt 描述英文图） | flux2 |
+| `封面图，主标题：探索 AI` | 要（封面带中文标题） | z-image |
+
+### 推荐做法：Agent 显式传 `--profile`
+
+```bash
+# 图里要画中文（封面标题/副标题、广告牌中文字、海报标语）
+python3 scripts/comfyui_gen.py --prompt "..." --profile z-image
+
+# 图里不画中文（场景图、抽象插画、纯英文标题）
+python3 scripts/comfyui_gen.py --prompt "..." --profile flux2
+```
+
+封面图通常带中文标题、内容结构图必然含大量中文 → 都直接用 `--profile z-image`。
+纯英文场景图、抽象配图 → 直接用 `--profile flux2`。
+
+### 兜底：auto 启发式
+
+不传 `--profile` 时走 `default_profile=auto`，脚本用以下启发式判断 prompt 是否声明"要在图里画中文"：
+
+1. **prompt 中存在被引号包裹的中文文本** —— 常见格式如 `title "标题"`、`text "世界杯足球"`、`「中文金句」`
+   - 支持的引号：英文 `"..."` `'...'` \`...\`、中文 `"..."` `'...'` `「...」` `『...』`
+2. **prompt 中出现明确关键词** —— `in Chinese` / `chinese text` / `chinese title` / `用中文写` / `中文标题` 等
+
+任一命中 → `z-image`；都没命中 → `flux2`。
+
+每次 auto 选择会在 stderr 打印：
+```
+[INFO] auto 选择 profile: z-image（prompt 中检测到要在图里渲染的中文文本）
+[HINT] 若不准确，请在调用时显式指定 --profile z-image / --profile flux2
+```
+
+启发式有边角 case 漏判（比如纯中文描述但意图是"图里要画中文"），所以 **Agent 调用时尽量显式传 `--profile`，不要依赖 auto**。
 
 ### 显式切换
 
 ```bash
-# 强制走 flux2，无论 prompt 是否含中文
-python3 scripts/comfyui_gen.py --prompt "..." --profile flux2
-
-# 强制走 z-image
-python3 scripts/comfyui_gen.py --prompt "..." --profile z-image
-
 # 环境变量临时改默认 profile
 COMFYUI_PROFILE=flux2 python3 scripts/comfyui_gen.py --prompt "..."
 
@@ -192,17 +223,21 @@ cp wechat-tech-writer/config.json wechat-product-manager-writer/config.json
 
 ## 五、常见问题
 
-**Q: auto 把含中文混排（如"Claude Code: AI 写代码"）的 prompt 判成什么？**
+**Q: 为什么不能用"prompt 是否含中文"作为判断标准？**
 
-A: 算含中文 → 走 z-image。CJK 检测匹配的是范围 `\u3400-\u9fff` 内任意一个字符，只要有一个汉字就触发。
+A: 因为我们写图片 prompt 时,中文 prompt 描述的图里可能完全没中文(比如"一只猫")，英文 prompt 描述的图里反倒可能要画中文(比如 `billboard text "世界杯足球"`)。两者无关，必须看的是"最终图里要不要渲染汉字"。
 
-**Q: 想给 flux2 用作含中文 prompt 的默认（反过来）？**
+**Q: auto 启发式漏判了怎么办？**
 
-A: 把 `auto_rules.contains_cjk` 改成 `"flux2"`，`fallback` 改成 `"z-image"`。但 flux 系对中文文字渲染普遍不如 z-image，不推荐这么配。
+A: 在调用时显式加 `--profile z-image` 或 `--profile flux2`。启发式只是兜底，Agent 应该尽量自己判断并显式传。
+
+**Q: 想给 flux2 用作含中文场景的默认（反过来）？**
+
+A: 把 `auto_rules.render_cjk_text` 改成 `"flux2"`，`fallback` 改成 `"z-image"`。但 flux 系对中文文字渲染普遍不如 z-image，不推荐这么配。
 
 **Q: 想关掉 auto，永远手动指定？**
 
-A: 把 `default_profile` 改成 `"z-image"` 或 `"flux2"`，并在每次调用时显式传 `--profile`。
+A: 把 `default_profile` 改成 `"z-image"` 或 `"flux2"`，并在每次调用时显式传 `--profile`。或者干脆删掉 `default_profile` 字段（脚本会用内置默认 `auto`，那还是改成 z-image 更直接）。
 
 **Q: 我换了 unet 文件名但报"找不到模型"？**
 

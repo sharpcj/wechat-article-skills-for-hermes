@@ -159,11 +159,15 @@ python3 scripts/comfyui_gen.py \
   --negative "blurry, low quality, deformed, distorted text"
 ```
 
-> **🤖 模型自动选择**：脚本的 `default_profile` 为 `auto`，会按 prompt 是否含中文自动挑模型：
-> - prompt **含中文**（封面标题/副标题/正文配图里有中文字）→ `z-image`（中文文字渲染稳）
-> - prompt **不含中文**（纯英文场景图）→ `flux2`（画质更好）
+> **🤖 模型选择规则**：
 >
-> 想强制指定时加 `--profile z-image` 或 `--profile flux2`；想看当前可用档案用 `--list-profiles`。封面图通常含中文标题，几乎都会走 z-image。
+> 判断依据是**最终图里是否需要渲染汉字**，跟 prompt 本身是用中文还是英文写的无关：
+> - 图里要画中文字（封面标题/副标题、广告牌上的中文字、海报标语等）→ `--profile z-image`
+> - 图里不画中文字（纯英文标题、抽象插画、纯场景图）→ `--profile flux2`
+>
+> **推荐 Agent 显式传 `--profile`**。封面图通常带中文标题 → `--profile z-image`；纯英文/无文字的场景图 → `--profile flux2`。
+>
+> 不传时脚本会走 `auto` 启发式（看 prompt 里有没有"引号包裹的中文文本"或 `in Chinese` 等关键词），可能漏判，所以最好显式指定。看可用档案用 `--list-profiles`。
 
 脚本把生成图片的绝对路径打到 stdout，取最后一行用在文章封面位置即可。
 
@@ -387,17 +391,19 @@ python3 scripts/comfyui_gen.py \
 
 ### 常用调用
 
-生图**首选本地 ComfyUI**（调用本技能自带的 `scripts/comfyui_gen.py`），默认 `--profile auto`，按 prompt 是否含中文自动选 `z-image` / `flux2`：
+生图**首选本地 ComfyUI**（调用本技能自带的 `scripts/comfyui_gen.py`）。**根据"图里是否需要渲染汉字"显式传 `--profile`**（封面 / 内容结构图含中文 → `z-image`，纯英文 / 无文字 → `flux2`）：
 
-**生成封面图（2.35:1）**：
+**生成封面图（2.35:1，通常含中文标题）**：
 ```bash
-python3 scripts/comfyui_gen.py --prompt "提示词" --width 1024 --height 432
+python3 scripts/comfyui_gen.py --prompt "提示词" --profile z-image --width 1024 --height 432
 ```
 
 **生成方形/竖版配图**：
 ```bash
-python3 scripts/comfyui_gen.py --prompt "提示词" --width 1024 --height 768   # 内容图 4:3
+python3 scripts/comfyui_gen.py --prompt "提示词" --profile z-image --width 1024 --height 768   # 内容图 4:3,图里有中文
 ```
+
+> 不传 `--profile` 会走 `auto` 启发式（识别引号包裹的中文或 `in Chinese` 等关键词），可能漏判。Agent 调用时尽量显式传。
 
 > **备选**：ComfyUI 不可用时改用 `image_generate(prompt="提示词", aspect_ratio="landscape")`。若 ComfyUI 未启动，按本文件上方"封面图生成"段所述：先告知用户、由用户选择手动启动 ComfyUI 或改用在线生图，不要静默退回。
 
@@ -425,8 +431,10 @@ python3 scripts/comfyui_gen.py --prompt "提示词" --width 1024 --height 768   
 )
 
 # 步骤5：生成封面图（强制，首选本地 ComfyUI）
-# 调用本技能自带的脚本（默认 --profile auto，含中文自动走 z-image，纯英文走 flux2）：
-#   python3 scripts/comfyui_gen.py --prompt "..." --width 1024 --height 432
+# 调用本技能自带的脚本：
+#   封面图通常含中文标题 → --profile z-image
+#   python3 scripts/comfyui_gen.py --prompt "..." --profile z-image --width 1024 --height 432
+# 内容配图：根据图里是否要画中文选 profile（不画中文用 --profile flux2）
 # 备选：image_generate(prompt="...", aspect_ratio="landscape")
 生成封面图(prompt="Claude Sonnet 4 封面，蓝紫渐变，标题+副标题...")
 

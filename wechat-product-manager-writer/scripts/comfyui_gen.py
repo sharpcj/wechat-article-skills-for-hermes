@@ -3,22 +3,22 @@
 ComfyUI 生图 API Wrapper
 
 用法:
-    # 默认 default_profile=auto：根据 prompt 是否含中文自动选 z-image / flux2
-    python3 comfyui_gen.py --prompt "你的提示词"
+    # 推荐：Agent 根据"图里是否需要渲染汉字"显式指定 profile
+    python3 comfyui_gen.py --prompt "..." --profile z-image   # 图里要画中文
+    python3 comfyui_gen.py --prompt "..." --profile flux2     # 图里不画中文
 
-    # 显式指定 profile
-    python3 comfyui_gen.py --prompt "..." --profile flux2
-    python3 comfyui_gen.py --prompt "..." --profile z-image
+    # 兜底：不传 --profile 时走 default_profile=auto，
+    # auto 用启发式判断 prompt 是否要在"图里"渲染中文（不是 prompt 本身有没有中文字符）：
+    #   - prompt 里有 "引号包裹的中文文本"          → z-image
+    #   - prompt 里有 'in Chinese' / '用中文写' 等  → z-image
+    #   - 其他情况                                  → flux2
+    # 启发式可能漏判，所以 Agent 调用时尽量显式传 --profile。
 
     # 直接指定 workflow 文件（跳过 profile，向后兼容）
     python3 comfyui_gen.py --prompt "..." --workflow templates/image_z_image.json
 
     # 列出 profile
     python3 comfyui_gen.py --list-profiles
-
-自动选择规则（在 config.json 的 auto_rules 中定义）:
-    prompt 含中文（CJK 字符）→ z-image
-    其他情况               → flux2
 
 参数覆盖:
     --width / --height  覆盖空 latent 的宽高
@@ -42,17 +42,19 @@ _DEFAULTS = {
     "comfyui_output_dir": os.path.expanduser("~/comfyui_output"),
     "default_profile": "auto",
     "auto_rules": {
-        "contains_cjk": "z-image",
+        # 启发式命中（引号包裹的中文 / 显式关键词）走哪个 profile
+        "render_cjk_text": "z-image",
+        # 启发式未命中走哪个 profile
         "fallback": "flux2",
     },
     "profiles": {
         "z-image": {
             "workflow": "templates/image_z_image.json",
-            "description": "Z-Image (Qwen3-4B CLIP + AuraFlow), 中文文字渲染更稳",
+            "description": "Z-Image (Qwen3-4B CLIP + AuraFlow), 图里需要渲染中文字符时用",
         },
         "flux2": {
             "workflow": "templates/image_flux2_text_to_image_9b.json",
-            "description": "FLUX.2 9B (SamplerCustomAdvanced + Flux2 latent), 非中文场景画质更好",
+            "description": "FLUX.2 9B, 图里不需要渲染中文字符时用，画质更好",
         },
     },
 }
@@ -128,28 +130,86 @@ SEED_NODE_FIELDS = {
     "RandomNoise": "noise_seed",
 }
 
-CJK_PATTERN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]")
+# auto 启发式：判断 prompt 是否需要"在图里渲染中文字符"。
+# 注意：不是判断 prompt 本身有没有中文 —— 中文描述纯英文场景不算。
+CJK_CHAR = re.compile(r"[\u3400-\u9fff]")
+# 各类引号配对：英文单/双/反引号、中文直角引号、弯引号
+_QUOTE_PAIRS = [
+    ("\"", "\""),
+    ("'", "'"),
+    ("`", "`"),
+    ("\u201c", "\u201d"),  # “ ”
+    ("\u2018", "\u2019"),  # ‘ ’
+    ("\u300c", "\u300d"),  # 「 」
+    ("\u300e", "\u300f"),  # 『 』
+]
+# 显式声明"图里要画中文"的关键词，命中即视为需要渲染中文。
+# 注意：只放"主动表达要画中文"的短语，不要放泛指词（如"中文文字"），否则会误命中
+# "无中文文字"这类否定表达。
+_EXPLICIT_CJK_HINTS = re.compile(
+    r"(?i)("
+    r"in chinese|chinese text|chinese characters|chinese words|chinese title|chinese subtitle|"
+    r"chinese label|chinese caption|simplified chinese|"
+    r"含中文|中文标题|中文副标题|中文字符|画上中文|写着.*汉字|写有.*汉字|用中文写"
+    r")"
+)
 
 
-def contains_cjk(text: str) -> bool:
-    """检测字符串是否包含中日韩统一表意文字（覆盖常用汉字范围）。"""
-    return bool(text and CJK_PATTERN.search(text))
+def prompt_implies_cjk_render(text: str) -> bool:
+    """启发式：prompt 是否表达"要在图里画出中文字符"。
+
+    命中条件（任一即可）：
+      1. prompt 中存在被引号包裹的中文文本（Agent 通常用 'title "标题"' 或
+         `text "世界杯足球"` 这种格式表达"这段字要画进图里"）
+      2. prompt 中出现明确关键词（in Chinese / chinese text / 用中文写 等）
+
+    不命中的典型场景：
+      - 整段中文 prompt 描述一只猫 —— 没有引号包裹的中文文本，没有关键词
+      - 整段英文 prompt 描述一辆车 —— 没有任何中文
+    """
+    if not text:
+        return False
+
+    # 1. 引号配对扫描
+    for left, right in _QUOTE_PAIRS:
+        idx = 0
+        while True:
+            start = text.find(left, idx)
+            if start < 0:
+                break
+            end = text.find(right, start + len(left))
+            # 对称引号（如 ' ' " " `）find 同字符会找到自己，需找下一个
+            if left == right:
+                end = text.find(right, start + len(left))
+            if end < 0:
+                break
+            inner = text[start + len(left): end]
+            if "\n" not in inner and CJK_CHAR.search(inner):
+                return True
+            idx = end + len(right)
+
+    # 2. 显式关键词
+    if _EXPLICIT_CJK_HINTS.search(text):
+        return True
+
+    return False
 
 
 def resolve_profile(profile_name: str, prompt: str) -> str:
-    """处理 'auto' 档：根据 prompt 内容决定走哪个真实 profile。其他名字直接返回。"""
+    """处理 'auto' 档：用启发式判断 prompt 是否需要在图里渲染中文。其他名字直接返回。"""
     if profile_name != "auto":
         return profile_name
 
-    target_cjk = AUTO_RULES.get("contains_cjk")
+    # 兼容旧字段名 contains_cjk（语义相同，仅命名调整）
+    target_cjk = AUTO_RULES.get("render_cjk_text") or AUTO_RULES.get("contains_cjk")
     target_fallback = AUTO_RULES.get("fallback")
 
-    if contains_cjk(prompt):
+    if prompt_implies_cjk_render(prompt):
         chosen = target_cjk
-        reason = "prompt 含中文"
+        reason = "prompt 中检测到要在图里渲染的中文文本"
     else:
         chosen = target_fallback
-        reason = "prompt 不含中文"
+        reason = "prompt 未声明要在图里渲染中文"
 
     if not chosen or chosen not in PROFILES:
         available = ", ".join(sorted(p for p in PROFILES.keys() if p != "auto")) or "(空)"
@@ -161,6 +221,10 @@ def resolve_profile(profile_name: str, prompt: str) -> str:
         sys.exit(1)
 
     print(f"[INFO] auto 选择 profile: {chosen}（{reason}）", file=sys.stderr)
+    print(
+        "[HINT] 若不准确，请在调用时显式指定 --profile z-image / --profile flux2",
+        file=sys.stderr,
+    )
     return chosen
 
 
@@ -369,9 +433,12 @@ def list_profiles():
     """打印所有 profile 信息。"""
     print(f"默认 profile: {DEFAULT_PROFILE}")
     if DEFAULT_PROFILE == "auto":
-        cjk = AUTO_RULES.get("contains_cjk", "?")
+        cjk = AUTO_RULES.get("render_cjk_text") or AUTO_RULES.get("contains_cjk", "?")
         fb = AUTO_RULES.get("fallback", "?")
-        print(f"  auto 规则：含中文 → {cjk}，否则 → {fb}")
+        print(f"  auto 规则：")
+        print(f"    prompt 中有引号包裹的中文 / 出现 'in Chinese' 等关键词 → {cjk}")
+        print(f"    其他情况                                              → {fb}")
+        print(f"  注意：这只是启发式兜底，建议 Agent 显式传 --profile")
     print()
     if not PROFILES:
         print("（config.json 中未定义任何 profile）")

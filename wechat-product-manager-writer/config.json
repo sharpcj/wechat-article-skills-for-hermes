@@ -3,17 +3,17 @@
   "comfyui_output_dir": "~/comfyui_output",
   "default_profile": "auto",
   "auto_rules": {
-    "contains_cjk": "z-image",
+    "render_cjk_text": "z-image",
     "fallback": "flux2"
   },
   "profiles": {
     "z-image": {
       "workflow": "templates/image_z_image.json",
-      "description": "Z-Image (Qwen3-4B CLIP + AuraFlow), 中文文字渲染更稳"
+      "description": "Z-Image (Qwen3-4B CLIP + AuraFlow), 图里需要渲染中文字符时用"
     },
     "flux2": {
       "workflow": "templates/image_flux2_text_to_image_9b.json",
-      "description": "FLUX.2 9B (SamplerCustomAdvanced + Flux2 latent), 非中文场景画质更好"
+      "description": "FLUX.2 9B, 图里不需要渲染中文字符时用，画质更好"
     }
   }
 }

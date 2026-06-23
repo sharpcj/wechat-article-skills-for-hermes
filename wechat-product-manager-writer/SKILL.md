@@ -374,11 +374,15 @@ python3 scripts/comfyui_gen.py \
   --negative "blurry, low quality, deformed, distorted text"
 ```
 
-> **🤖 模型自动选择**：脚本的 `default_profile` 为 `auto`，按 prompt 是否含中文自动挑模型：
-> - prompt **含中文**（封面标题/副标题、内容结构图、含中文字的正文配图）→ `z-image`（中文文字渲染稳）
-> - prompt **不含中文**（纯英文场景图、抽象插画）→ `flux2`（画质更好）
+> **🤖 模型选择规则**：
 >
-> 想强制指定时加 `--profile z-image` 或 `--profile flux2`；查看可用档案用 `--list-profiles`。封面图带中文标题时几乎都会自动走 z-image。
+> 判断依据是**最终图里是否需要渲染汉字**，跟 prompt 本身是用中文还是英文写的无关：
+> - 图里要画中文字（封面标题/副标题、内容结构图、含中文字的正文配图）→ `--profile z-image`
+> - 图里不画中文字（纯英文场景图、抽象插画）→ `--profile flux2`
+>
+> **推荐 Agent 显式传 `--profile`**。封面图带中文标题、内容结构图都直接用 `--profile z-image`。
+>
+> 不传时脚本会走 `auto` 启发式（看 prompt 里有没有"引号包裹的中文文本"或 `in Chinese` 等关键词），可能漏判，所以最好显式指定。查看可用档案用 `--list-profiles`。
 
 脚本把生成图片的绝对路径打到 stdout，取最后一行用于文章封面。
 
@@ -407,11 +411,12 @@ python3 scripts/comfyui_gen.py \
 
 **生成方式**：
 
-同样首选本地 ComfyUI（调用本技能自带的 `scripts/comfyui_gen.py`，内容结构图比例 4:3 → `--width 1024 --height 768`，由于结构图含大量中文，会自动走 z-image）：
+同样首选本地 ComfyUI（调用本技能自带的 `scripts/comfyui_gen.py`，内容结构图比例 4:3 → `--width 1024 --height 768`，结构图含大量中文，直接用 `--profile z-image`）：
 
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "Create a hand-drawn sketch visual summary of these notes about [文章主题和核心要点]. Use a clean white paper background (no lines). Art style should be 'graphic recording' or 'visual thinking', using black fine-tip pen for clear outlines and text. Use colored markers (especially cyan, orange, and soft red) for simple coloring and emphasis. Place main title '[文章标题]' centered in a 3D-style rectangular box. Surround the title with radially distributed simple doodles, business icons, stick figures, and diagrams to explain concepts. Connect ideas with arrows. Text should be clear, hand-written uppercase block letters. Layout should be 16:9." \
+  --profile z-image \
   --width 1024 --height 768 \
   --negative "blurry, low quality, deformed, distorted text"
 ```
