@@ -121,7 +121,7 @@ CRITICAL REQUIREMENTS:
 **调用生成**：
 ```bash
 # 调用本技能自带的 scripts/comfyui_gen.py，首选本地 ComfyUI 生图（封面图 2.35:1 → 1024x432）
-python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --workflow templates/image_z_image.json --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
+python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
 # 备选：ComfyUI 不可用时改用 image_generate(prompt="[上述提示词]", aspect_ratio="landscape")
 ```
 
@@ -326,7 +326,7 @@ IMPORTANT: Use exact values 850, 1100, 950 milliseconds.
 **生成**：
 ```bash
 # 调用本技能自带的 scripts/comfyui_gen.py，首选本地 ComfyUI 生图（封面图 2.35:1 → 1024x432）
-python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --workflow templates/image_z_image.json --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
+python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
 # 备选：ComfyUI 不可用时改用 image_generate(prompt="[上述提示词]", aspect_ratio="landscape")
 ```
 
@@ -503,7 +503,7 @@ CRITICAL REQUIREMENTS:
 **调用生成**：
 ```bash
 # 调用本技能自带的 scripts/comfyui_gen.py，首选本地 ComfyUI 生图（封面图 2.35:1 → 1024x432）
-python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --workflow templates/image_z_image.json --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
+python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
 # 备选：ComfyUI 不可用时改用 image_generate(prompt="[上述提示词]", aspect_ratio="landscape")
 ```
 
@@ -534,7 +534,7 @@ All text in simplified Chinese, clear labels.
 **生成**：
 ```bash
 # 调用本技能自带的 scripts/comfyui_gen.py，首选本地 ComfyUI 生图（封面图 2.35:1 → 1024x432）
-python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --workflow templates/image_z_image.json --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
+python3 scripts/comfyui_gen.py --prompt "[上述提示词]" --width 1024 --height 432 --negative "blurry, low quality, deformed, distorted text"
 # 备选：ComfyUI 不可用时改用 image_generate(prompt="[上述提示词]", aspect_ratio="landscape")
 ```
 

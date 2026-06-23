@@ -340,7 +340,6 @@ All Chinese characters must be clear and correct.
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "你构建的完整提示词" \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 432 \
   --negative "blurry, low quality, deformed, distorted text"
 ```
@@ -401,9 +400,9 @@ python3 scripts/comfyui_gen.py \
 **保存最佳版本**：
 ```bash
 # 用不同提示词/微调多次调用本地 ComfyUI，比较后选最佳的一张（首选）
-python3 scripts/comfyui_gen.py --prompt "...版本1..." --workflow templates/image_z_image.json --width 1024 --height 432
-python3 scripts/comfyui_gen.py --prompt "...版本2..." --workflow templates/image_z_image.json --width 1024 --height 432
-python3 scripts/comfyui_gen.py --prompt "...版本3..." --workflow templates/image_z_image.json --width 1024 --height 432
+python3 scripts/comfyui_gen.py --prompt "...版本1..." --width 1024 --height 432
+python3 scripts/comfyui_gen.py --prompt "...版本2..." --width 1024 --height 432
+python3 scripts/comfyui_gen.py --prompt "...版本3..." --width 1024 --height 432
 # 从生成的几张图里挑选最满意的用于封面
 # 备选：ComfyUI 不可用时改用 image_generate(prompt="...版本N...", aspect_ratio="landscape")
 ```

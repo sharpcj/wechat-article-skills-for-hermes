@@ -9,7 +9,6 @@
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "你的英文/中文提示词，强调 simplified Chinese text 等要求" \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 432 \
   --negative "blurry, low quality, deformed, distorted text"
 ```

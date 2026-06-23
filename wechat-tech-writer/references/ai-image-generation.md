@@ -48,7 +48,6 @@ AI生成图片可以有效补充技术文章的视觉内容，特别适合创建
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "图片描述提示词，强调 simplified Chinese text 等要求" \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 432 \
   --negative "blurry, low quality, deformed, distorted text"
 ```
@@ -58,8 +57,7 @@ python3 scripts/comfyui_gen.py \
 **示例**：
 ```bash
 python3 scripts/comfyui_gen.py \
-  --prompt "A modern cover image for an article about AI. Style: minimalist, blue gradient, professional." \
-  --workflow templates/image_z_image.json --width 1024 --height 432
+  --prompt "A modern cover image for an article about AI. Style: minimalist, blue gradient, professional." \ --width 1024 --height 432
 ```
 
 > 调用前先确认 ComfyUI 在线（`curl -s -m 5 -o /dev/null -w "%{http_code}" "${COMFYUI_URL:-http://localhost:6677}/"` 返回 200）。
@@ -116,7 +114,7 @@ images_to_generate = [
 # 2. 批量生成图片（首选本地 ComfyUI，调用本技能自带的 scripts/comfyui_gen.py）
 import subprocess
 for img in images_to_generate:
-    # 首选：python3 scripts/comfyui_gen.py --prompt <img['prompt']> --workflow templates/image_z_image.json （封面 --width 1024 --height 432 / 内容图 --width 1024 --height 768）
+    # 首选：python3 scripts/comfyui_gen.py --prompt <img['prompt']> （封面 --width 1024 --height 432 / 内容图 --width 1024 --height 768）
     # 取脚本 stdout 最后一行作为图片路径
     # 备选（ComfyUI 不可用时）：image_generate(prompt=img['prompt'], aspect_ratio="landscape")
     pass

@@ -114,7 +114,6 @@
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "你构建的完整提示词" \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 768 \
   --negative "blurry, low quality, deformed, distorted text"
 ```

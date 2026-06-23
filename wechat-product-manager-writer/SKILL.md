@@ -370,10 +370,15 @@ AI 时代产品经理的思维方式、能力要求、工作方法。
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "A cover image for WeChat article about [主题], [配色] gradient. Layout: Split into two distinct zones (left 40%, right 60%). Left zone: title '[标题]' in Chinese, subtitle '[副标题]' in Chinese, text aligned left. Right zone: [视觉元素], visual elements should not overlap with text zone. Modern tech style, clean design, 2.35:1 aspect ratio" \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 432 \
   --negative "blurry, low quality, deformed, distorted text"
 ```
+
+> **🤖 模型自动选择**：脚本的 `default_profile` 为 `auto`，按 prompt 是否含中文自动挑模型：
+> - prompt **含中文**（封面标题/副标题、内容结构图、含中文字的正文配图）→ `z-image`（中文文字渲染稳）
+> - prompt **不含中文**（纯英文场景图、抽象插画）→ `flux2`（画质更好）
+>
+> 想强制指定时加 `--profile z-image` 或 `--profile flux2`；查看可用档案用 `--list-profiles`。封面图带中文标题时几乎都会自动走 z-image。
 
 脚本把生成图片的绝对路径打到 stdout，取最后一行用于文章封面。
 
@@ -402,12 +407,11 @@ python3 scripts/comfyui_gen.py \
 
 **生成方式**：
 
-同样首选本地 ComfyUI（调用本技能自带的 `scripts/comfyui_gen.py`，内容结构图比例 4:3 → `--width 1024 --height 768`）：
+同样首选本地 ComfyUI（调用本技能自带的 `scripts/comfyui_gen.py`，内容结构图比例 4:3 → `--width 1024 --height 768`，由于结构图含大量中文，会自动走 z-image）：
 
 ```bash
 python3 scripts/comfyui_gen.py \
   --prompt "Create a hand-drawn sketch visual summary of these notes about [文章主题和核心要点]. Use a clean white paper background (no lines). Art style should be 'graphic recording' or 'visual thinking', using black fine-tip pen for clear outlines and text. Use colored markers (especially cyan, orange, and soft red) for simple coloring and emphasis. Place main title '[文章标题]' centered in a 3D-style rectangular box. Surround the title with radially distributed simple doodles, business icons, stick figures, and diagrams to explain concepts. Connect ideas with arrows. Text should be clear, hand-written uppercase block letters. Layout should be 16:9." \
-  --workflow templates/image_z_image.json \
   --width 1024 --height 768 \
   --negative "blurry, low quality, deformed, distorted text"
 ```
